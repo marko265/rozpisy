@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Rozpis směn</title>
+<title>Rozpis & Schůzky</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap');
 
@@ -154,10 +154,50 @@
   .user-row .del-btn { background: transparent; border: none; color: var(--muted); cursor: pointer; font-size: 0.75rem; transition: color .15s; }
   .user-row .del-btn:hover { color: var(--danger); }
 
+  /* Tabs */
+  .tabs { display: flex; gap: 4px; padding: 0 32px; background: rgba(14,15,17,.85); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
+  .tab-btn { background: transparent; border: none; border-bottom: 2px solid transparent; color: var(--muted); font-family: 'DM Mono', monospace; font-size: 0.75rem; letter-spacing: .1em; text-transform: uppercase; padding: 14px 18px; cursor: pointer; transition: color .15s, border-color .15s; margin-bottom: -1px; }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* Meetings */
+  .meetings-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 48px; }
+  .meeting-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; display: flex; align-items: flex-start; gap: 20px; transition: border-color .15s; cursor: pointer; position: relative; overflow: hidden; }
+  .meeting-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent2); border-radius: 3px 0 0 3px; }
+  .meeting-card:hover { border-color: var(--accent2); }
+  .meeting-date-box { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; text-align: center; min-width: 56px; flex-shrink: 0; }
+  .meeting-date-day { font-family: 'DM Serif Display', serif; font-size: 1.6rem; color: var(--accent2); line-height: 1; }
+  .meeting-date-mon { font-size: 0.6rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-top: 2px; }
+  .meeting-info { flex: 1; }
+  .meeting-title { font-size: 0.92rem; font-weight: 500; color: var(--text); margin-bottom: 6px; }
+  .meeting-meta { font-size: 0.72rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 12px; }
+  .meeting-meta span::before { margin-right: 4px; }
+  .meeting-desc { font-size: 0.75rem; color: var(--muted); margin-top: 8px; line-height: 1.6; border-top: 1px solid var(--border); padding-top: 8px; display: none; }
+  .meeting-card.expanded .meeting-desc { display: block; }
+  .meeting-del { position: absolute; right: 16px; top: 16px; background: transparent; border: none; color: var(--muted); cursor: pointer; font-size: 0.8rem; transition: color .15s; display: none; }
+  .meeting-del:hover { color: var(--danger); }
+
+  /* Add meeting form */
+  .add-meeting-box { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 28px; }
+  .add-meeting-box .section-label { margin-bottom: 16px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-grid .full { grid-column: 1 / -1; }
+  .form-input { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; color: var(--text); font-family: 'DM Mono', monospace; font-size: 0.82rem; outline: none; transition: border-color .2s; }
+  .form-input:focus { border-color: var(--accent2); }
+  textarea.form-input { resize: vertical; min-height: 70px; }
+  .form-btn { background: var(--accent2); color: #fff; border: none; border-radius: 8px; padding: 11px 22px; font-family: 'DM Mono', monospace; font-size: 0.78rem; font-weight: 500; cursor: pointer; transition: opacity .15s; margin-top: 4px; }
+  .form-btn:hover { opacity: .85; }
+  .no-meetings { text-align: center; padding: 48px; color: var(--muted); font-size: 0.8rem; }
+
   @media (max-width: 600px) {
     .header { padding: 16px 18px; }
+    .tabs { padding: 0 12px; }
     .main { padding: 24px 18px; }
     .weeks-grid { grid-template-columns: 1fr; }
+    .form-grid { grid-template-columns: 1fr; }
+    .meeting-card { flex-direction: column; gap: 12px; }
   }
 </style>
 </head>
@@ -193,7 +233,16 @@
     </div>
   </header>
 
+  <!-- TABS -->
+  <nav class="tabs">
+    <button class="tab-btn active" onclick="switchTab('rozpis')">📋 Rozpis</button>
+    <button class="tab-btn" onclick="switchTab('schuzky')">📅 Schůzky</button>
+  </nav>
+
   <main class="main">
+
+    <!-- ══ TAB: ROZPIS ══ -->
+    <div id="tab-rozpis" class="tab-content active">
 
     <div class="cloud-bar">
       <div class="cloud-dot" id="cloudDot"></div>
@@ -246,6 +295,59 @@
       </div>
       <div id="detailContent"></div>
     </div>
+
+    </div> <!-- end tab-rozpis -->
+
+    <!-- ══ TAB: SCHŮZKY ══ -->
+    <div id="tab-schuzky" class="tab-content">
+
+      <!-- Add meeting form (admin only) -->
+      <div class="add-meeting-box" id="addMeetingBox" style="display:none">
+        <div class="section-label">Přidat schůzku</div>
+        <div class="form-grid">
+          <div>
+            <input type="text" class="form-input" id="mTitle" placeholder="Název schůzky *">
+          </div>
+          <div>
+            <input type="date" class="form-input" id="mDate">
+          </div>
+          <div>
+            <input type="time" class="form-input" id="mTime" placeholder="Čas (např. 18:00)">
+          </div>
+          <div>
+            <input type="text" class="form-input" id="mPlace" placeholder="Místo">
+          </div>
+          <div class="full">
+            <textarea class="form-input" id="mDesc" placeholder="Poznámka / popis (nepovinné)"></textarea>
+          </div>
+        </div>
+        <button class="form-btn" onclick="addMeeting()">+ Přidat schůzku</button>
+
+        <!-- Upload CSV for meetings -->
+        <div style="margin-top:20px; padding-top:16px; border-top:1px solid var(--border)">
+          <div class="section-label">Nebo nahrát ze souboru</div>
+          <div class="upload-zone" id="meetingUploadZone" style="margin-bottom:0">
+            <input type="file" id="meetingFileInput" accept=".csv,.xlsx,.xls">
+            <div class="upload-icon">📅</div>
+            <div class="upload-text">CSV / Excel: sloupce <strong>Datum;Název;Čas;Místo;Popis</strong></div>
+            <div class="upload-text" style="margin-top:4px;font-size:.7rem;">Datum ve formátu DD.MM.RRRR nebo RRRR-MM-DD</div>
+            <div class="upload-status" id="meetingUploadStatus"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Meetings list -->
+      <div class="weeks-header" style="margin-bottom:16px">
+        <div class="section-label" style="margin:0">Nadcházející schůzky</div>
+        <div class="nav-btns">
+          <label style="font-size:.7rem;color:var(--muted);display:flex;align-items:center;gap:8px;cursor:pointer">
+            <input type="checkbox" id="showPast" onchange="renderMeetings()" style="accent-color:var(--accent2)"> Zobrazit minulé
+          </label>
+        </div>
+      </div>
+      <div id="meetingsList"></div>
+
+    </div> <!-- end tab-schuzky -->
 
     <!-- Admin -->
     <div class="admin-section" id="adminSection" style="display:none">
@@ -315,6 +417,8 @@ async function cloudLoad() {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     setCloudStatus('ok', 'Data načtena z cloudu ✓');
+    meetingsCache = data.record.meetings || [];
+    saveLocal('meetings_cache', meetingsCache);
     return data.record.schedule || {};
   } catch(e) {
     setCloudStatus('err', `Chyba připojení: ${e.message} — zobrazuji lokální cache`);
@@ -330,7 +434,7 @@ async function cloudSave(schedule) {
     const res = await fetch(`${JSONBIN_BASE}/b/${binId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', 'X-Master-Key': key },
-      body: JSON.stringify({ schedule })
+      body: JSON.stringify({ schedule, meetings: meetingsCache })
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     setCloudStatus('ok', 'Uloženo do cloudu ✓');
@@ -340,7 +444,7 @@ async function cloudSave(schedule) {
 async function loadSchedule() {
   const cloud = await cloudLoad();
   if (cloud !== null) { scheduleCache = cloud; saveLocal('schedule_cache', cloud); }
-  else { scheduleCache = loadLocal('schedule_cache', {}); }
+  else { scheduleCache = loadLocal('schedule_cache', {}); meetingsCache = loadLocal('meetings_cache', []); }
   renderWeeks();
 }
 
@@ -373,6 +477,7 @@ function doLogin() {
   if (found.isAdmin) {
     document.getElementById('adminSection').style.display = 'block';
     document.getElementById('uploadSection').style.display = 'block';
+    document.getElementById('addMeetingBox').style.display = 'block';
     renderUsersList();
     if (!getApiKey()) document.getElementById('setupBox').style.display = 'block';
   }
@@ -386,6 +491,7 @@ function doLogout() {
   document.getElementById('loginUser').value = '';
   document.getElementById('loginPass').value = '';
   document.getElementById('loginErr').style.display = 'none';
+  document.getElementById('addMeetingBox').style.display = 'none';
   closeDetail();
 }
 
@@ -514,7 +620,195 @@ function groupByDate(rows) {
   return r;
 }
 
-/* ══ USER MANAGEMENT ══ */
+
+/* ══ TABS ══ */
+function switchTab(name) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  document.querySelector(`.tab-btn[onclick="switchTab('${name}')"]`).classList.add('active');
+  if (name === 'schuzky') renderMeetings();
+}
+
+/* ══ MEETINGS DATA ══ */
+let meetingsCache = [];
+
+async function loadMeetings() {
+  const cloud = await cloudLoadMeetings();
+  if (cloud !== null) { meetingsCache = cloud; saveLocal('meetings_cache', cloud); }
+  else { meetingsCache = loadLocal('meetings_cache', []); }
+}
+
+async function cloudLoadMeetings() {
+  const key = getApiKey(); const binId = getBinId();
+  if (!key || !binId) return null;
+  try {
+    const res = await fetch(`${JSONBIN_BASE}/b/${binId}/latest`, { headers: { 'X-Master-Key': key } });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.record.meetings || [];
+  } catch { return null; }
+}
+
+async function saveMeetings(m) {
+  meetingsCache = m; saveLocal('meetings_cache', m);
+  // Save both schedule and meetings together in the bin
+  const key = getApiKey(); const binId = getBinId();
+  if (!key || !binId) return;
+  setCloudStatus('loading', 'Ukládám schůzky do cloudu…');
+  try {
+    const res = await fetch(`${JSONBIN_BASE}/b/${binId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': key },
+      body: JSON.stringify({ schedule: scheduleCache, meetings: m })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    setCloudStatus('ok', 'Uloženo do cloudu ✓');
+  } catch(e) { setCloudStatus('err', `Nepodařilo se uložit: ${e.message}`); }
+}
+
+/* ══ MEETINGS UI ══ */
+function renderMeetings() {
+  const list = document.getElementById('meetingsList');
+  const showPast = document.getElementById('showPast').checked;
+  const today = toISO(new Date());
+
+  let meetings = [...meetingsCache].sort((a,b) => a.date.localeCompare(b.date));
+  if (!showPast) meetings = meetings.filter(m => m.date >= today);
+
+  // Show delete buttons for admin
+  const isAdmin = currentUser?.isAdmin;
+
+  if (meetings.length === 0) {
+    list.innerHTML = `<div class="no-meetings">${showPast ? 'Žádné schůzky.' : 'Žádné nadcházející schůzky.'}</div>`;
+    return;
+  }
+
+  list.innerHTML = '';
+  meetings.forEach((m, idx) => {
+    const realIdx = meetingsCache.indexOf(m);
+    const d = new Date(m.date + 'T00:00:00');
+    const card = document.createElement('div');
+    card.className = 'meeting-card' + (m.date < today ? ' past' : '');
+    if (m.date < today) card.style.opacity = '0.55';
+    card.innerHTML = `
+      <div class="meeting-date-box">
+        <div class="meeting-date-day">${d.getDate()}</div>
+        <div class="meeting-date-mon">${CZ_MONTHS[d.getMonth()].slice(0,3)}</div>
+      </div>
+      <div class="meeting-info">
+        <div class="meeting-title">${m.title}</div>
+        <div class="meeting-meta">
+          ${m.time ? `<span>🕐 ${m.time}</span>` : ''}
+          ${m.place ? `<span>📍 ${m.place}</span>` : ''}
+          <span>${CZ_DAYS[d.getDay()]}</span>
+        </div>
+        ${m.desc ? `<div class="meeting-desc">${m.desc}</div>` : ''}
+      </div>
+      ${isAdmin ? `<button class="meeting-del" onclick="deleteMeeting(${realIdx}, event)" title="Smazat">✕</button>` : ''}
+    `;
+    if (m.desc) {
+      card.style.cursor = 'pointer';
+      card.addEventListener('click', () => card.classList.toggle('expanded'));
+    }
+    if (isAdmin) {
+      card.addEventListener('mouseenter', () => { const btn=card.querySelector('.meeting-del'); if(btn) btn.style.display='block'; });
+      card.addEventListener('mouseleave', () => { const btn=card.querySelector('.meeting-del'); if(btn) btn.style.display='none'; });
+    }
+    list.appendChild(card);
+  });
+}
+
+async function addMeeting() {
+  const title = document.getElementById('mTitle').value.trim();
+  const date  = document.getElementById('mDate').value;
+  if (!title || !date) { alert('Vyplň alespoň název a datum.'); return; }
+  const m = {
+    id: Date.now(),
+    title,
+    date,
+    time:  document.getElementById('mTime').value || '',
+    place: document.getElementById('mPlace').value.trim(),
+    desc:  document.getElementById('mDesc').value.trim()
+  };
+  const updated = [...meetingsCache, m];
+  await saveMeetings(updated);
+  document.getElementById('mTitle').value = '';
+  document.getElementById('mDate').value = '';
+  document.getElementById('mTime').value = '';
+  document.getElementById('mPlace').value = '';
+  document.getElementById('mDesc').value = '';
+  renderMeetings();
+}
+
+async function deleteMeeting(idx, e) {
+  e.stopPropagation();
+  if (!confirm('Smazat tuto schůzku?')) return;
+  const updated = meetingsCache.filter((_,i) => i !== idx);
+  await saveMeetings(updated);
+  renderMeetings();
+}
+
+/* ══ MEETING FILE UPLOAD ══ */
+const meetingUploadZone = document.getElementById('meetingUploadZone');
+const meetingFileInput  = document.getElementById('meetingFileInput');
+
+meetingUploadZone.addEventListener('dragover', e => { e.preventDefault(); meetingUploadZone.classList.add('drag-over'); });
+meetingUploadZone.addEventListener('dragleave', () => meetingUploadZone.classList.remove('drag-over'));
+meetingUploadZone.addEventListener('drop', e => { e.preventDefault(); meetingUploadZone.classList.remove('drag-over'); if(e.dataTransfer.files[0]) handleMeetingFile(e.dataTransfer.files[0]); });
+meetingFileInput.addEventListener('change', () => { if(meetingFileInput.files[0]) handleMeetingFile(meetingFileInput.files[0]); });
+
+function handleMeetingFile(file) {
+  const name = file.name.toLowerCase();
+  const status = document.getElementById('meetingUploadStatus');
+  if (name.endsWith('.csv') || name.endsWith('.txt')) {
+    const r = new FileReader(); r.onload = async e => {
+      try { const rows = parseMeetingCSV(e.target.result); await mergeMeetings(rows, file.name, status); }
+      catch(err) { status.textContent = `Chyba: ${err.message}`; status.className = 'upload-status err'; }
+    }; r.readAsText(file, 'UTF-8');
+  } else if (name.endsWith('.xlsx') || name.endsWith('.xls')) {
+    if (typeof XLSX === 'undefined') { const s=document.createElement('script'); s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'; s.onload=()=>parseMeetingExcel(file,status); document.head.appendChild(s); }
+    else parseMeetingExcel(file, status);
+  } else { status.textContent='Nepodporovaný formát.'; status.className='upload-status err'; }
+}
+
+function parseMeetingCSV(text) {
+  const lines = text.split(/\r?\n/).filter(l=>l.trim());
+  if (lines.length < 2) throw new Error('Soubor neobsahuje dostatek dat.');
+  const headers = splitLine(lines[0]);
+  return lines.slice(1).map(l => {
+    const v = splitLine(l);
+    const obj = {}; headers.forEach((h,i) => obj[h.trim()] = v[i]??'');
+    // Map common column names
+    const date = normalizeDate(obj['Datum'] || obj['datum'] || obj[headers[0]]);
+    return { id: Date.now()+Math.random(), date: date||'', title: obj['Název']||obj['název']||obj['name']||obj[headers[1]]||'', time: obj['Čas']||obj['čas']||obj['time']||'', place: obj['Místo']||obj['místo']||obj['place']||'', desc: obj['Popis']||obj['popis']||obj['desc']||'' };
+  }).filter(m => m.date && m.title);
+}
+
+function parseMeetingExcel(file, status) {
+  const r = new FileReader(); r.onload = async e => {
+    try { const wb=XLSX.read(e.target.result,{type:'binary'}),ws=wb.Sheets[wb.SheetNames[0]],json=XLSX.utils.sheet_to_json(ws,{defval:''}); await mergeMeetings(parseMeetingRows(json),file.name,status); }
+    catch(err){status.textContent=`Chyba Excel: ${err.message}`;status.className='upload-status err';}
+  }; r.readAsBinaryString(file);
+}
+
+function parseMeetingRows(rows) {
+  return rows.map(row => {
+    const k = Object.keys(row);
+    const date = normalizeDate(row['Datum']||row['datum']||row[k[0]]);
+    return { id:Date.now()+Math.random(), date:date||'', title:row['Název']||row['název']||row[k[1]]||'', time:row['Čas']||row['čas']||'', place:row['Místo']||row['místo']||'', desc:row['Popis']||row['popis']||'' };
+  }).filter(m=>m.date&&m.title);
+}
+
+async function mergeMeetings(newRows, fname, status) {
+  const existing = meetingsCache.filter(m => !newRows.find(n=>n.date===m.date&&n.title===m.title));
+  const updated = [...existing, ...newRows];
+  await saveMeetings(updated);
+  status.textContent = `✓ Nahráno ${fname} — ${newRows.length} schůzek.`;
+  status.className = 'upload-status ok';
+  renderMeetings();
+}
+
 function renderUsersList() {
   const users=getUsers(),list=document.getElementById('usersList'); list.innerHTML='';
   users.forEach((u,i)=>{const row=document.createElement('div');row.className='user-row';
