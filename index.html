@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rozpis směn</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap');
+
+  :root {
+    --bg: #1C0770;
+    --surface: #1C0770;
+    --card: #21199b;
+    --border: #2a2d35;
+    --accent: #F1FF5E;
+    --accent2: #3A9AFF;
+    --text: #FFFAFA;
+    --muted: #DCDCDC;
+    --danger: #ff5f5f;
+    --success: #4ecf7e;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  /* LOGIN */
+  #loginPage {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; position: relative; z-index: 1;
+  }
+  .login-wrap { width: 100%; max-width: 420px; padding: 24px; animation: fadeUp .5s ease both; }
+  @keyframes fadeUp { from { opacity:0; transform: translateY(20px); } to { opacity:1; transform: translateY(0); } }
+  .login-logo { font-family: 'DM Serif Display', serif; font-size: 2.4rem; color: var(--accent); letter-spacing: -1px; margin-bottom: 4px; }
+  .login-sub { font-size: 0.72rem; color: var(--muted); letter-spacing: .15em; text-transform: uppercase; margin-bottom: 40px; }
+  .login-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 36px 32px; box-shadow: 0 24px 80px rgba(0,0,0,.5); }
+  .field { margin-bottom: 20px; }
+  .field label { display: block; font-size: 0.68rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .field input { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; color: var(--text); font-family: 'DM Mono', monospace; font-size: 0.9rem; outline: none; transition: border-color .2s; }
+  .field input:focus { border-color: var(--accent); }
+  .login-btn { width: 100%; background: var(--accent); color: #0e0f11; border: none; border-radius: 8px; padding: 13px; font-family: 'DM Mono', monospace; font-size: 0.85rem; font-weight: 500; letter-spacing: .08em; cursor: pointer; margin-top: 4px; transition: opacity .15s, transform .1s; }
+  .login-btn:hover { opacity: .88; }
+  .login-btn:active { transform: scale(.98); }
+  .login-err { color: var(--danger); font-size: 0.75rem; margin-top: 14px; text-align: center; display: none; }
+
+  /* APP */
+  #appPage { display: none; position: relative; z-index: 1; }
+  .header { display: flex; align-items: center; justify-content: space-between; padding: 20px 32px; border-bottom: 1px solid var(--border); background: rgba(14,15,17,.85); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 100; }
+  .header-title { font-family: 'DM Serif Display', serif; font-size: 1.5rem; color: var(--accent); letter-spacing: -.5px; }
+  .header-right { display: flex; align-items: center; gap: 16px; }
+  .user-badge { font-size: 0.72rem; color: var(--muted); letter-spacing: .08em; padding: 6px 12px; border: 1px solid var(--border); border-radius: 20px; }
+  .logout-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); border-radius: 8px; padding: 6px 14px; font-family: 'DM Mono', monospace; font-size: 0.72rem; cursor: pointer; transition: border-color .2s, color .2s; letter-spacing: .06em; }
+  .logout-btn:hover { border-color: var(--danger); color: var(--danger); }
+
+  .main { padding: 40px 32px; max-width: 1000px; margin: 0 auto; }
+  .section-label { font-size: 0.65rem; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
+
+  /* Cloud bar */
+  .cloud-bar { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 18px; margin-bottom: 20px; font-size: 0.75rem; }
+  .cloud-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex-shrink: 0; transition: background .3s; }
+  .cloud-dot.ok { background: var(--success); }
+  .cloud-dot.err { background: var(--danger); }
+  .cloud-dot.loading { background: var(--accent); animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.3; } }
+  .cloud-text { color: var(--muted); }
+
+  /* Setup box */
+  .setup-box { background: rgba(232,184,75,.06); border: 1px solid rgba(232,184,75,.25); border-radius: 12px; padding: 20px 24px; margin-bottom: 24px; }
+  .setup-box p { font-size: 0.78rem; color: var(--text); margin-bottom: 12px; line-height: 1.7; }
+  .setup-box a { color: var(--accent); text-decoration: none; }
+  .setup-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .setup-row input { flex: 1; min-width: 200px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; color: var(--text); font-family: 'DM Mono', monospace; font-size: 0.8rem; outline: none; transition: border-color .2s; }
+  .setup-row input:focus { border-color: var(--accent); }
+  .setup-row button { background: var(--accent); color: #0e0f11; border: none; border-radius: 8px; padding: 10px 18px; font-family: 'DM Mono', monospace; font-size: 0.78rem; font-weight: 500; cursor: pointer; transition: opacity .15s; white-space: nowrap; }
+  .setup-row button:hover { opacity: .85; }
+
+  /* Upload */
+  .upload-zone { border: 1.5px dashed var(--border); border-radius: 12px; padding: 28px; text-align: center; cursor: pointer; transition: border-color .2s, background .2s; margin-bottom: 40px; }
+  .upload-zone:hover { border-color: var(--accent); background: rgba(232,184,75,.04); }
+  .upload-zone.drag-over { border-color: var(--accent); background: rgba(232,184,75,.07); }
+  .upload-zone input { display: none; }
+  .upload-icon { font-size: 1.8rem; margin-bottom: 10px; }
+  .upload-text { font-size: 0.8rem; color: var(--muted); }
+  .upload-text span { color: var(--accent); cursor: pointer; }
+  .upload-status { font-size: 0.75rem; margin-top: 12px; padding: 8px 14px; border-radius: 6px; display: none; }
+  .upload-status.ok { background: rgba(78,207,126,.1); color: var(--success); display: block; }
+  .upload-status.err { background: rgba(255,95,95,.1); color: var(--danger); display: block; }
+
+  /* Weeks */
+  .weeks-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 20px; }
+  .nav-btns { display: flex; gap: 8px; }
+  .nav-btn { background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: 6px; width: 34px; height: 34px; display: grid; place-items: center; cursor: pointer; font-size: 1rem; transition: border-color .15s, background .15s; }
+  .nav-btn:hover { border-color: var(--accent); background: rgba(232,184,75,.06); }
+  .weeks-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin-bottom: 48px; }
+  .week-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; animation: fadeUp .3s ease both; }
+  .week-card:nth-child(2) { animation-delay: .05s; }
+  .week-card:nth-child(3) { animation-delay: .1s; }
+  .week-card:nth-child(4) { animation-delay: .15s; }
+  .week-label { font-size: 0.62rem; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+  .day-btn { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; margin-bottom: 10px; cursor: pointer; text-align: left; transition: border-color .15s, background .15s, transform .1s; position: relative; overflow: hidden; }
+  .day-btn::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; border-radius: 3px 0 0 3px; }
+  .day-btn.thu::before { background: var(--accent); }
+  .day-btn.sun::before { background: var(--accent2); }
+  .day-btn:hover { border-color: var(--accent); background: rgba(232,184,75,.05); transform: translateX(2px); }
+  .day-btn.sun:hover { border-color: var(--accent2); background: rgba(91,143,255,.05); }
+  .day-btn-name { font-size: 0.82rem; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+  .day-btn-time { font-size: 0.7rem; color: var(--muted); }
+  .day-btn .dot { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); width: 7px; height: 7px; border-radius: 50%; }
+  .day-btn.thu .dot { background: var(--accent); opacity: .6; }
+  .day-btn.sun .dot { background: var(--accent2); opacity: .6; }
+  .day-btn .has-data { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 0.6rem; color: var(--success); }
+
+  /* Detail */
+  #detailPanel { display: none; background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 32px; margin-top: 8px; animation: fadeUp .25s ease both; }
+  .detail-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 28px; }
+  .detail-title { font-family: 'DM Serif Display', serif; font-size: 1.8rem; color: var(--text); line-height: 1.1; }
+  .detail-badge { font-size: 0.68rem; letter-spacing: .12em; text-transform: uppercase; padding: 5px 12px; border-radius: 20px; margin-top: 4px; display: inline-block; }
+  .detail-badge.thu { background: rgba(232,184,75,.15); color: var(--accent); }
+  .detail-badge.sun { background: rgba(91,143,255,.15); color: var(--accent2); }
+  .close-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); border-radius: 6px; width: 32px; height: 32px; display: grid; place-items: center; cursor: pointer; font-size: 1.1rem; transition: border-color .15s, color .15s; flex-shrink: 0; }
+  .close-btn:hover { border-color: var(--danger); color: var(--danger); }
+  .schedule-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  .schedule-table th { text-align: left; padding: 10px 14px; font-size: 0.63rem; letter-spacing: .15em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); }
+  .schedule-table td { padding: 12px 14px; border-bottom: 1px solid rgba(42,45,53,.6); vertical-align: top; }
+  .schedule-table tr:last-child td { border-bottom: none; }
+  .schedule-table tr:hover td { background: rgba(255,255,255,.02); }
+  .no-data { text-align: center; padding: 40px; color: var(--muted); font-size: 0.8rem; }
+
+  /* Admin */
+  .admin-section { margin-top: 48px; padding-top: 32px; border-top: 1px solid var(--border); }
+  .add-user-row { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+  .add-user-row input { flex: 1; min-width: 160px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; color: var(--text); font-family: 'DM Mono', monospace; font-size: 0.82rem; outline: none; transition: border-color .2s; }
+  .add-user-row input:focus { border-color: var(--accent); }
+  .add-user-row button { background: var(--accent); color: #0e0f11; border: none; border-radius: 8px; padding: 10px 18px; font-family: 'DM Mono', monospace; font-size: 0.78rem; font-weight: 500; cursor: pointer; transition: opacity .15s; }
+  .add-user-row button:hover { opacity: .85; }
+  .users-list { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+  .user-row { display: flex; align-items: center; justify-content: space-between; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 16px; font-size: 0.8rem; }
+  .user-row .del-btn { background: transparent; border: none; color: var(--muted); cursor: pointer; font-size: 0.75rem; transition: color .15s; }
+  .user-row .del-btn:hover { color: var(--danger); }
+
+  @media (max-width: 600px) {
+    .header { padding: 16px 18px; }
+    .main { padding: 24px 18px; }
+    .weeks-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginPage">
+  <div class="login-wrap">
+    <div class="login-logo">Rozpis</div>
+    <div class="login-sub">Správa směn</div>
+    <div class="login-card">
+      <div class="field">
+        <label>Uživatelské jméno</label>
+        <input type="text" id="loginUser" placeholder="jméno" autocomplete="username">
+      </div>
+      <div class="field">
+        <label>Heslo</label>
+        <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="login-btn" onclick="doLogin()">Přihlásit se →</button>
+      <div class="login-err" id="loginErr">Nesprávné přihlašovací údaje.</div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="appPage">
+  <header class="header">
+    <div class="header-title">Rozpis směn</div>
+    <div class="header-right">
+      <div class="user-badge" id="userBadge">—</div>
+      <button class="logout-btn" onclick="doLogout()">Odhlásit</button>
+    </div>
+  </header>
+
+  <main class="main">
+
+    <div class="cloud-bar">
+      <div class="cloud-dot" id="cloudDot"></div>
+      <div class="cloud-text" id="cloudText">Připojuji se…</div>
+    </div>
+
+    <!-- API key setup -->
+    <div class="setup-box" id="setupBox" style="display:none">
+      <p>
+        <strong>Jednorázové nastavení cloudu</strong> — aby data viděli všichni na každém zařízení.<br><br>
+        1. Jdi na <a href="https://jsonbin.io" target="_blank">jsonbin.io</a> → <strong>Sign Up</strong> (zdarma, jen email)<br>
+        2. Po přihlášení klikni nahoře na <strong>API Keys</strong> → <strong>+ Create Access Key</strong><br>
+        3. Zkopíruj klíč a vlož ho sem:
+      </p>
+      <div class="setup-row">
+        <input type="text" id="apiKeyInput" placeholder="$2b$10$xxxxxxxxxxxxxxxxxxxxxxxx...">
+        <button onclick="saveApiKey()">Uložit a připojit</button>
+      </div>
+    </div>
+
+    <!-- Upload (only admin) -->
+    <div id="uploadSection" style="display:none">
+      <div class="section-label">Nahrát rozpis</div>
+      <div class="upload-zone" id="uploadZone">
+        <input type="file" id="fileInput" accept=".csv,.xlsx,.xls,.txt">
+        <div class="upload-icon">📋</div>
+        <div class="upload-text">Přetáhni soubor sem nebo <span onclick="document.getElementById('fileInput').click()">klikni pro výběr</span></div>
+        <div class="upload-text" style="margin-top:6px; font-size:.7rem;">CSV nebo Excel (.xlsx) — první sloupec = datum</div>
+        <div class="upload-status" id="uploadStatus"></div>
+      </div>
+    </div>
+
+    <!-- Weeks -->
+    <div class="weeks-header">
+      <div class="section-label" style="margin:0">Nadcházející termíny</div>
+      <div class="nav-btns">
+        <button class="nav-btn" onclick="shiftWeeks(-4)" title="Zpět">◂</button>
+        <button class="nav-btn" onclick="shiftWeeks(4)" title="Dopředu">▸</button>
+      </div>
+    </div>
+    <div class="weeks-grid" id="weeksGrid"></div>
+
+    <div id="detailPanel">
+      <div class="detail-header">
+        <div>
+          <div class="detail-title" id="detailTitle"></div>
+          <div class="detail-badge" id="detailBadge"></div>
+        </div>
+        <button class="close-btn" onclick="closeDetail()">✕</button>
+      </div>
+      <div id="detailContent"></div>
+    </div>
+
+    <!-- Admin -->
+    <div class="admin-section" id="adminSection" style="display:none">
+      <div class="section-label">Správa uživatelů</div>
+      <div class="add-user-row">
+        <input type="text" id="newUser" placeholder="Uživatelské jméno">
+        <input type="password" id="newPass" placeholder="Heslo">
+        <button onclick="addUser()">+ Přidat</button>
+      </div>
+      <div class="users-list" id="usersList"></div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+/* ══ CONFIG ══ */
+const JSONBIN_BASE = 'https://api.jsonbin.io/v3';
+
+/* ══ LOCAL STORAGE ══ */
+function saveLocal(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
+function loadLocal(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } }
+
+function getApiKey() { return loadLocal('jsonbin_key', ''); }
+function getBinId()  { return loadLocal('jsonbin_bin_id', ''); }
+
+/* ══ USERS (local only — passwords never go to cloud) ══ */
+function getUsers() {
+  return loadLocal('users', [
+    { username: 'admin', password: '1.Petra5.2', isAdmin: true },
+    { username: 'user',  password: 'user123',  isAdmin: false }
+  ]);
+}
+function saveUsers(u) { saveLocal('users', u); }
+
+/* ══ CLOUD ══ */
+let scheduleCache = {};
+
+function setCloudStatus(state, msg) {
+  const dot = document.getElementById('cloudDot');
+  dot.className = 'cloud-dot ' + (state === 'ok' ? 'ok' : state === 'err' ? 'err' : state === 'loading' ? 'loading' : '');
+  document.getElementById('cloudText').textContent = msg;
+}
+
+async function cloudLoad() {
+  const key = getApiKey();
+  if (!key) { setCloudStatus('', 'Cloud není nastaven — data se sdílet nebudou'); return null; }
+  setCloudStatus('loading', 'Načítám data z cloudu…');
+  try {
+    let binId = getBinId();
+    if (!binId) {
+      const res = await fetch(`${JSONBIN_BASE}/b`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Master-Key': key, 'X-Bin-Name': 'rozpis-smeny' },
+        body: JSON.stringify({ schedule: {} })
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      binId = data.metadata.id;
+      saveLocal('jsonbin_bin_id', binId);
+      setCloudStatus('ok', 'Cloud připojen ✓  (nové úložiště vytvořeno)');
+      return {};
+    }
+    const res = await fetch(`${JSONBIN_BASE}/b/${binId}/latest`, { headers: { 'X-Master-Key': key } });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    setCloudStatus('ok', 'Data načtena z cloudu ✓');
+    return data.record.schedule || {};
+  } catch(e) {
+    setCloudStatus('err', `Chyba připojení: ${e.message} — zobrazuji lokální cache`);
+    return null;
+  }
+}
+
+async function cloudSave(schedule) {
+  const key = getApiKey(); const binId = getBinId();
+  if (!key || !binId) return;
+  setCloudStatus('loading', 'Ukládám do cloudu…');
+  try {
+    const res = await fetch(`${JSONBIN_BASE}/b/${binId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': key },
+      body: JSON.stringify({ schedule })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    setCloudStatus('ok', 'Uloženo do cloudu ✓');
+  } catch(e) { setCloudStatus('err', `Nepodařilo se uložit: ${e.message}`); }
+}
+
+async function loadSchedule() {
+  const cloud = await cloudLoad();
+  if (cloud !== null) { scheduleCache = cloud; saveLocal('schedule_cache', cloud); }
+  else { scheduleCache = loadLocal('schedule_cache', {}); }
+  renderWeeks();
+}
+
+async function saveSchedule(s) {
+  scheduleCache = s; saveLocal('schedule_cache', s); await cloudSave(s);
+}
+
+/* ══ API KEY SETUP ══ */
+function saveApiKey() {
+  const val = document.getElementById('apiKeyInput').value.trim();
+  if (!val) return;
+  saveLocal('jsonbin_key', val);
+  saveLocal('jsonbin_bin_id', '');
+  document.getElementById('setupBox').style.display = 'none';
+  loadSchedule();
+}
+
+/* ══ AUTH ══ */
+let currentUser = null;
+
+function doLogin() {
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  const found = getUsers().find(x => x.username === u && x.password === p);
+  if (!found) { document.getElementById('loginErr').style.display = 'block'; return; }
+  currentUser = found;
+  document.getElementById('loginPage').style.display = 'none';
+  document.getElementById('appPage').style.display = 'block';
+  document.getElementById('userBadge').textContent = u;
+  if (found.isAdmin) {
+    document.getElementById('adminSection').style.display = 'block';
+    document.getElementById('uploadSection').style.display = 'block';
+    renderUsersList();
+    if (!getApiKey()) document.getElementById('setupBox').style.display = 'block';
+  }
+  loadSchedule();
+}
+
+function doLogout() {
+  currentUser = null;
+  document.getElementById('appPage').style.display = 'none';
+  document.getElementById('loginPage').style.display = 'flex';
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+  document.getElementById('loginErr').style.display = 'none';
+  closeDetail();
+}
+
+document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key==='Enter') doLogin(); });
+document.getElementById('loginUser').addEventListener('keydown', e => { if (e.key==='Enter') doLogin(); });
+
+/* ══ WEEKS ══ */
+let weekOffset = 0;
+
+function getSlots(skip, count) {
+  const slots = []; const d = new Date(); d.setHours(0,0,0,0);
+  let found=0, checked=0;
+  while (found < skip+count && checked < 600) {
+    const dow = d.getDay();
+    if (dow===4 || dow===0) { if (checked>=skip) slots.push({date:new Date(d), type:dow===4?'thu':'sun', isoDate:toISO(d)}); found++; }
+    d.setDate(d.getDate()+1); checked++;
+  }
+  return slots;
+}
+
+function toISO(d) { return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+const CZ_DAYS=['Neděle','Pondělí','Úterý','Středa','Čtvrtek','Pátek','Sobota'];
+const CZ_MONTHS=['ledna','února','března','dubna','května','června','července','srpna','září','října','listopadu','prosince'];
+function formatDate(d) { return `${CZ_DAYS[d.getDay()]} ${d.getDate()}. ${CZ_MONTHS[d.getMonth()]}`; }
+function shiftWeeks(n) { weekOffset=Math.max(0,weekOffset+n); renderWeeks(); }
+
+function renderWeeks() {
+  const slots = getSlots(weekOffset*2, 8);
+  const grid = document.getElementById('weeksGrid');
+  grid.innerHTML = '';
+  const weeks = {};
+  slots.forEach(s => {
+    const d=s.date, jan4=new Date(d.getFullYear(),0,4), sow=new Date(jan4);
+    sow.setDate(jan4.getDate()-((jan4.getDay()+6)%7));
+    const wn=Math.floor((d-sow)/604800000)+1, key=`${d.getFullYear()}-W${wn}`;
+    if (!weeks[key]) weeks[key]={label:`Týden ${wn} / ${d.getFullYear()}`,slots:[]};
+    weeks[key].slots.push(s);
+  });
+  Object.values(weeks).forEach(w => {
+    const card=document.createElement('div'); card.className='week-card';
+    card.innerHTML=`<div class="week-label">${w.label}</div>`;
+    w.slots.forEach(s => {
+      const time=s.type==='thu'?'18:00':'10:00', dayName=s.type==='thu'?'Čtvrtek':'Neděle';
+      const hasData=scheduleCache[s.isoDate]?.length>0;
+      const btn=document.createElement('button'); btn.className=`day-btn ${s.type}`;
+      btn.innerHTML=`<div class="day-btn-name">${dayName} — ${formatDate(s.date).split(' ').slice(1).join(' ')}</div>
+        <div class="day-btn-time">${time} · ${s.isoDate}</div>
+        ${hasData?'<span class="has-data">● rozpis</span>':'<span class="dot"></span>'}`;
+      btn.onclick=()=>openDetail(s); card.appendChild(btn);
+    });
+    grid.appendChild(card);
+  });
+  closeDetail();
+}
+
+/* ══ DETAIL ══ */
+function openDetail(slot) {
+  const panel=document.getElementById('detailPanel');
+  const time=slot.type==='thu'?'18:00':'10:00', dayName=slot.type==='thu'?'Čtvrtek':'Neděle';
+  document.getElementById('detailTitle').textContent=`${dayName}, ${formatDate(slot.date)}`;
+  const badge=document.getElementById('detailBadge');
+  badge.textContent=`${time} — ${slot.type==='thu'?'Čtvrtková směna':'Nedělní směna'}`;
+  badge.className=`detail-badge ${slot.type}`;
+  const rows=scheduleCache[slot.isoDate];
+  const content=document.getElementById('detailContent');
+  if (!rows||rows.length===0) {
+    content.innerHTML=`<div class="no-data">Pro tento den zatím nebyl nahrán žádný rozpis.</div>`;
+  } else {
+    const cols=Object.keys(rows[0]);
+    let html=`<table class="schedule-table"><thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>`;
+    rows.forEach(r=>{ html+=`<tr>${cols.map(c=>`<td>${r[c]??''}</td>`).join('')}</tr>`; });
+    html+=`</tbody></table>`; content.innerHTML=html;
+  }
+  panel.style.display='block'; panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function closeDetail() { document.getElementById('detailPanel').style.display='none'; }
+
+/* ══ FILE UPLOAD ══ */
+const uploadZone=document.getElementById('uploadZone'), fileInput=document.getElementById('fileInput');
+uploadZone.addEventListener('dragover',e=>{e.preventDefault();uploadZone.classList.add('drag-over');});
+uploadZone.addEventListener('dragleave',()=>uploadZone.classList.remove('drag-over'));
+uploadZone.addEventListener('drop',e=>{e.preventDefault();uploadZone.classList.remove('drag-over');if(e.dataTransfer.files[0])handleFile(e.dataTransfer.files[0]);});
+fileInput.addEventListener('change',()=>{if(fileInput.files[0])handleFile(fileInput.files[0]);});
+
+function handleFile(file) {
+  const name=file.name.toLowerCase(), status=document.getElementById('uploadStatus');
+  if (name.endsWith('.csv')||name.endsWith('.txt')) {
+    const r=new FileReader(); r.onload=async e=>{
+      try { const p=parseCSV(e.target.result); await mergeAndSave(p,file.name,status); }
+      catch(err){status.textContent=`Chyba: ${err.message}`;status.className='upload-status err';}
+    }; r.readAsText(file,'UTF-8');
+  } else if (name.endsWith('.xlsx')||name.endsWith('.xls')) {
+    if (typeof XLSX==='undefined') { const s=document.createElement('script'); s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'; s.onload=()=>parseExcel(file,status); document.head.appendChild(s); }
+    else parseExcel(file,status);
+  } else { status.textContent='Nepodporovaný formát.'; status.className='upload-status err'; }
+}
+
+async function mergeAndSave(parsed, fname, status) {
+  await saveSchedule({...scheduleCache,...parsed});
+  status.textContent=`✓ Nahráno ${fname} — ${Object.keys(parsed).length} dní s daty. Ostatní uvidí změny po obnovení stránky.`;
+  status.className='upload-status ok'; renderWeeks();
+}
+
+function parseExcel(file,status) {
+  const r=new FileReader(); r.onload=async e=>{
+    try { const wb=XLSX.read(e.target.result,{type:'binary'}),ws=wb.Sheets[wb.SheetNames[0]],json=XLSX.utils.sheet_to_json(ws,{defval:''}); await mergeAndSave(groupByDate(json),file.name,status); }
+    catch(err){status.textContent=`Chyba Excel: ${err.message}`;status.className='upload-status err';}
+  }; r.readAsBinaryString(file);
+}
+
+function parseCSV(text) {
+  const lines=text.split(/\r?\n/).filter(l=>l.trim()); if(lines.length<2)throw new Error('Soubor neobsahuje dostatek dat.');
+  const headers=splitLine(lines[0]); return groupByDate(lines.slice(1).map(l=>{const v=splitLine(l),o={};headers.forEach((h,i)=>o[h]=v[i]??'');return o;}));
+}
+function splitLine(line) { const r=[];let c='',q=false; for(const ch of line){if(ch==='"'){q=!q;}else if((ch===','||ch===';')&&!q){r.push(c.trim());c='';}else c+=ch;} r.push(c.trim());return r; }
+function normalizeDate(val) {
+  if(!val)return null; const s=String(val).trim();
+  if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;
+  const m=s.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/); if(m)return `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
+  if(/^\d+$/.test(s)){const d=new Date(Math.round((parseInt(s)-25569)*86400*1000));return toISO(d);}
+  return null;
+}
+function groupByDate(rows) {
+  const r={};
+  rows.forEach(row=>{const k=Object.keys(row),date=normalizeDate(row[k[0]]);if(!date)return;if(!r[date])r[date]=[];const o={};k.slice(1).forEach(x=>o[x]=row[x]);r[date].push(o);});
+  return r;
+}
+
+/* ══ USER MANAGEMENT ══ */
+function renderUsersList() {
+  const users=getUsers(),list=document.getElementById('usersList'); list.innerHTML='';
+  users.forEach((u,i)=>{const row=document.createElement('div');row.className='user-row';
+    row.innerHTML=`<span>${u.username} ${u.isAdmin?'<small style="color:var(--accent)">admin</small>':''}</span>${u.username!=='admin'?`<button class="del-btn" onclick="removeUser(${i})">Smazat</button>`:'<span></span>'}`;list.appendChild(row);});
+}
+function addUser() {
+  const un=document.getElementById('newUser').value.trim(),pw=document.getElementById('newPass').value;
+  if(!un||!pw)return; const users=getUsers();
+  if(users.find(u=>u.username===un)){alert('Uživatel již existuje.');return;}
+  users.push({username:un,password:pw,isAdmin:false});saveUsers(users);
+  document.getElementById('newUser').value='';document.getElementById('newPass').value='';renderUsersList();
+}
+function removeUser(idx) { const u=getUsers();if(u[idx].username==='admin')return;u.splice(idx,1);saveUsers(u);renderUsersList(); }
+</script>
+</body>
+</html>
