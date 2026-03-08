@@ -366,20 +366,18 @@
 <script>
 /* ══ CONFIG ══ */
 const JSONBIN_BASE = 'https://api.jsonbin.io/v3';
-const FIXED_API_KEY = "$2a$10$uwv1prS7D9tBxDuJ4Z2UQuzWMOH0DWf9rvAw/uda0HWUgzwDkJIw6";
-const FIXED_BIN_ID  = "69ac5772d0ea881f40f98148";
 
 /* ══ LOCAL STORAGE ══ */
 function saveLocal(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
 function loadLocal(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } }
 
-function getApiKey() { return FIXED_API_KEY || loadLocal('jsonbin_key', ''); }
-function getBinId()  { return FIXED_BIN_ID  || loadLocal('jsonbin_bin_id', ''); }
+function getApiKey() { return loadLocal('jsonbin_key', ''); }
+function getBinId()  { return loadLocal('jsonbin_bin_id', ''); }
 
 /* ══ USERS (local only — passwords never go to cloud) ══ */
 function getUsers() {
   return loadLocal('users', [
-    { username: 'admin', password: '1.Petra5.2', isAdmin: true },
+    { username: 'admin', password: 'admin123', isAdmin: true },
     { username: 'user',  password: 'user123',  isAdmin: false }
   ]);
 }
@@ -524,10 +522,15 @@ function renderWeeks() {
   grid.innerHTML = '';
   const weeks = {};
   slots.forEach(s => {
-    const d=s.date, jan4=new Date(d.getFullYear(),0,4), sow=new Date(jan4);
-    sow.setDate(jan4.getDate()-((jan4.getDay()+6)%7));
-    const wn=Math.floor((d-sow)/604800000)+1, key=`${d.getFullYear()}-W${wn}`;
-    if (!weeks[key]) weeks[key]={label:`Týden ${wn} / ${d.getFullYear()}`,slots:[]};
+    const d=s.date;
+    // Week starts on Monday
+    const dow=(d.getDay()+6)%7;
+    const monday=new Date(d); monday.setDate(d.getDate()-dow);
+    const key=toISO(monday);
+    if (!weeks[key]) {
+      const label=`Týden od ${monday.getDate()}. ${CZ_MONTHS[monday.getMonth()]}`;
+      weeks[key]={label, slots:[]};
+    }
     weeks[key].slots.push(s);
   });
   Object.values(weeks).forEach(w => {
