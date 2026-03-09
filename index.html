@@ -8,7 +8,7 @@
   @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap');
 
   :root {
-    --bg: #1C0770;
+     --bg: #1C0770;
     --surface: #1C0770;
     --card: #21199b;
     --border: #2a2d35;
@@ -219,6 +219,25 @@
       </div>
       <button class="login-btn" onclick="doLogin()">Přihlásit se →</button>
       <div class="login-err" id="loginErr">Nesprávné přihlašovací údaje.</div>
+      <div style="text-align:center;margin-top:16px">
+        <button onclick="showFirstRun()" style="background:none;border:none;color:var(--muted);font-family:'DM Mono',monospace;font-size:0.7rem;cursor:pointer;text-decoration:underline;letter-spacing:.05em">První spuštění / nastavení cloudu</button>
+      </div>
+    </div>
+
+    <!-- First-run setup panel -->
+    <div id="firstRunPanel" style="display:none;margin-top:16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px">
+      <div style="font-size:.75rem;color:var(--text);line-height:1.7;margin-bottom:14px">
+        <strong style="color:var(--accent)">První spuštění</strong><br>
+        Vlož svůj JSONBin API klíč — uživatelé a hesla se uloží do cloudu a nikdy nebudou viditelní v kódu.
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <input type="text" id="frApiKey" class="field" placeholder="JSONBin API klíč ($2b$10$...)" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-family:'DM Mono',monospace;font-size:.82rem;outline:none;width:100%">
+        <input type="text" id="frBinId" placeholder="Bin ID (pokud už existuje — jinak nech prázdné)" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-family:'DM Mono',monospace;font-size:.82rem;outline:none;width:100%">
+        <input type="text" id="frAdminUser" placeholder="Uživatelské jméno admina" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-family:'DM Mono',monospace;font-size:.82rem;outline:none;width:100%">
+        <input type="password" id="frAdminPass" placeholder="Heslo admina" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-family:'DM Mono',monospace;font-size:.82rem;outline:none;width:100%">
+        <button onclick="doFirstRun()" style="background:var(--accent);color:#0e0f11;border:none;border-radius:8px;padding:11px;font-family:'DM Mono',monospace;font-size:.82rem;font-weight:500;cursor:pointer">Nastavit a přihlásit →</button>
+        <div id="frErr" style="display:none;color:var(--danger);font-size:.72rem;text-align:center"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -252,10 +271,10 @@
     <!-- API key setup -->
     <div class="setup-box" id="setupBox" style="display:none">
       <p>
-        <strong>Jednorázové nastavení cloudu</strong> — aby data viděli všichni na každém zařízení.<br><br>
+        <strong>Jednorázové nastavení cloudu</strong> — hesla uživatelů budou uložena v cloudu, ne v kódu stránky.<br><br>
         1. Jdi na <a href="https://jsonbin.io" target="_blank">jsonbin.io</a> → <strong>Sign Up</strong> (zdarma, jen email)<br>
-        2. Po přihlášení klikni nahoře na <strong>API Keys</strong> → <strong>+ Create Access Key</strong><br>
-        3. Zkopíruj klíč a vlož ho sem:
+        2. Po přihlášení klikni na <strong>API Keys</strong> → <strong>+ Create Access Key</strong> → zkopíruj klíč<br>
+        3. Vlož klíč sem a klikni Uložit — poté přidej uživatele v sekci Správa uživatelů níže:
       </p>
       <div class="setup-row">
         <input type="text" id="apiKeyInput" placeholder="$2b$10$xxxxxxxxxxxxxxxxxxxxxxxx...">
@@ -369,6 +388,7 @@ const JSONBIN_BASE = 'https://api.jsonbin.io/v3';
 const FIXED_API_KEY = "$2a$10$uwv1prS7D9tBxDuJ4Z2UQuzWMOH0DWf9rvAw/uda0HWUgzwDkJIw6";
 const FIXED_BIN_ID  = "69ac5772d0ea881f40f98148";
 
+
 /* ══ LOCAL STORAGE ══ */
 function saveLocal(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
 function loadLocal(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } }
@@ -377,14 +397,44 @@ function getApiKey() { return FIXED_API_KEY || loadLocal('jsonbin_key', ''); }
 function getBinId()  { return FIXED_BIN_ID  || loadLocal('jsonbin_bin_id', ''); }
 
 
-/* ══ USERS (local only — passwords never go to cloud) ══ */
+/* ══ USERS (stored in JSONBin — never in code) ══ */
+let usersCache = null; // loaded from cloud on login
+
 function getUsers() {
-  return loadLocal('users', [
-    { username: 'admin', password: 'admin123', isAdmin: true },
-    { username: 'user',  password: 'user123',  isAdmin: false }
-  ]);
+  // fallback to local cache only — no hardcoded passwords
+  return usersCache || loadLocal('users_cache', []);
 }
-function saveUsers(u) { saveLocal('users', u); }
+async function loadUsers() {
+  const key = getApiKey(); const binId = getBinId();
+  if (!key || !binId) { usersCache = loadLocal('users_cache', []); return; }
+  try {
+    const res = await fetch(`${JSONBIN_BASE}/b/${binId}/latest`, { headers: { 'X-Master-Key': key } });
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+    usersCache = data.record.users || [];
+    saveLocal('users_cache', usersCache);
+  } catch { usersCache = loadLocal('users_cache', []); }
+}
+async function saveUsers(u) {
+  usersCache = u; saveLocal('users_cache', u);
+  await cloudSaveAll();
+}
+
+// First-time setup: if no users exist in cloud yet, create defaults
+async function ensureDefaultUsers() {
+  const key = getApiKey(); const binId = getBinId();
+  if (!key || !binId) return;
+  try {
+    const res = await fetch(`${JSONBIN_BASE}/b/${binId}/latest`, { headers: { 'X-Master-Key': key } });
+    if (!res.ok) return;
+    const data = await res.json();
+    if (!data.record.users || data.record.users.length === 0) {
+      // No users yet — user must go through first-run setup
+      usersCache = [];
+      saveLocal('users_cache', []);
+    }
+  } catch {}
+}
 
 /* ══ CLOUD ══ */
 let scheduleCache = {};
@@ -420,6 +470,8 @@ async function cloudLoad() {
     setCloudStatus('ok', 'Data načtena z cloudu ✓');
     meetingsCache = data.record.meetings || [];
     saveLocal('meetings_cache', meetingsCache);
+    usersCache = data.record.users || [];
+    saveLocal('users_cache', usersCache);
     return data.record.schedule || {};
   } catch(e) {
     setCloudStatus('err', `Chyba připojení: ${e.message} — zobrazuji lokální cache`);
@@ -427,7 +479,7 @@ async function cloudLoad() {
   }
 }
 
-async function cloudSave(schedule) {
+async function cloudSaveAll(extraSchedule, extraMeetings) {
   const key = getApiKey(); const binId = getBinId();
   if (!key || !binId) return;
   setCloudStatus('loading', 'Ukládám do cloudu…');
@@ -435,11 +487,19 @@ async function cloudSave(schedule) {
     const res = await fetch(`${JSONBIN_BASE}/b/${binId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', 'X-Master-Key': key },
-      body: JSON.stringify({ schedule, meetings: meetingsCache })
+      body: JSON.stringify({
+        schedule: extraSchedule ?? scheduleCache,
+        meetings: extraMeetings ?? meetingsCache,
+        users: usersCache || []
+      })
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     setCloudStatus('ok', 'Uloženo do cloudu ✓');
   } catch(e) { setCloudStatus('err', `Nepodařilo se uložit: ${e.message}`); }
+}
+
+async function cloudSave(schedule) {
+  await cloudSaveAll(schedule, null);
 }
 
 async function loadSchedule() {
@@ -463,14 +523,93 @@ function saveApiKey() {
   loadSchedule();
 }
 
+/* ══ FIRST RUN ══ */
+function showFirstRun() {
+  const p = document.getElementById('firstRunPanel');
+  p.style.display = p.style.display === 'none' ? 'block' : 'none';
+}
+
+async function doFirstRun() {
+  const apiKey  = document.getElementById('frApiKey').value.trim();
+  const binId   = document.getElementById('frBinId').value.trim();
+  const adminU  = document.getElementById('frAdminUser').value.trim();
+  const adminP  = document.getElementById('frAdminPass').value;
+  const errEl   = document.getElementById('frErr');
+
+  if (!apiKey || !adminU || !adminP) { errEl.textContent = 'Vyplň API klíč, jméno a heslo.'; errEl.style.display='block'; return; }
+
+  saveLocal('jsonbin_key', apiKey);
+  if (binId) saveLocal('jsonbin_bin_id', binId);
+  else saveLocal('jsonbin_bin_id', '');
+
+  // Create bin if needed
+  let resolvedBinId = binId;
+  if (!resolvedBinId) {
+    try {
+      const res = await fetch(`${JSONBIN_BASE}/b`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Master-Key': apiKey, 'X-Bin-Name': 'rozpis-smeny' },
+        body: JSON.stringify({ schedule: {}, meetings: [], users: [] })
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      resolvedBinId = data.metadata.id;
+      saveLocal('jsonbin_bin_id', resolvedBinId);
+    } catch(e) { errEl.textContent = `Chyba: ${e.message} — zkontroluj API klíč.`; errEl.style.display='block'; return; }
+  }
+
+  // Save admin user to cloud
+  const adminUser = { username: adminU, password: adminP, isAdmin: true };
+  try {
+    const res = await fetch(`${JSONBIN_BASE}/b/${resolvedBinId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': apiKey },
+      body: JSON.stringify({ schedule: {}, meetings: [], users: [adminUser] })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  } catch(e) { errEl.textContent = `Nepodařilo se uložit: ${e.message}`; errEl.style.display='block'; return; }
+
+  usersCache = [adminUser];
+  saveLocal('users_cache', [adminUser]);
+
+  // Auto-login
+  currentUser = adminUser;
+  document.getElementById('loginPage').style.display = 'none';
+  document.getElementById('appPage').style.display = 'block';
+  document.getElementById('userBadge').textContent = adminU;
+  document.getElementById('adminSection').style.display = 'block';
+  document.getElementById('uploadSection').style.display = 'block';
+  document.getElementById('addMeetingBox').style.display = 'block';
+  renderUsersList();
+  loadSchedule();
+}
+
 /* ══ AUTH ══ */
 let currentUser = null;
 
-function doLogin() {
+async function doLogin() {
   const u = document.getElementById('loginUser').value.trim();
   const p = document.getElementById('loginPass').value;
-  const found = getUsers().find(x => x.username === u && x.password === p);
-  if (!found) { document.getElementById('loginErr').style.display = 'block'; return; }
+  const btn = document.querySelector('.login-btn');
+  btn.textContent = 'Ověřuji…'; btn.disabled = true;
+
+  // Load users from cloud first (so passwords are never in the code)
+  await loadUsers();
+
+  const users = getUsers();
+
+  // If no users exist yet in cloud, show setup instructions
+  if (users.length === 0) {
+    document.getElementById('loginErr').textContent = 'Žádní uživatelé nenalezeni. Nastav cloud a přidej uživatele.';
+    document.getElementById('loginErr').style.display = 'block';
+    btn.textContent = 'Přihlásit se →'; btn.disabled = false;
+    return;
+  }
+
+  const found = users.find(x => x.username === u && x.password === p);
+  btn.textContent = 'Přihlásit se →'; btn.disabled = false;
+
+  if (!found) { document.getElementById('loginErr').textContent = 'Nesprávné přihlašovací údaje.'; document.getElementById('loginErr').style.display = 'block'; return; }
   currentUser = found;
   document.getElementById('loginPage').style.display = 'none';
   document.getElementById('appPage').style.display = 'block';
@@ -816,18 +955,49 @@ async function mergeMeetings(newRows, fname, status) {
 }
 
 function renderUsersList() {
-  const users=getUsers(),list=document.getElementById('usersList'); list.innerHTML='';
-  users.forEach((u,i)=>{const row=document.createElement('div');row.className='user-row';
-    row.innerHTML=`<span>${u.username} ${u.isAdmin?'<small style="color:var(--accent)">admin</small>':''}</span>${u.username!=='admin'?`<button class="del-btn" onclick="removeUser(${i})">Smazat</button>`:'<span></span>'}`;list.appendChild(row);});
+  const users = getUsers(), list = document.getElementById('usersList');
+  list.innerHTML = '';
+  if (users.length === 0) {
+    list.innerHTML = '<div style="font-size:.75rem;color:var(--muted);padding:10px">Žádní uživatelé. Přidej prvního admina níže.</div>';
+    return;
+  }
+  users.forEach((u, i) => {
+    const row = document.createElement('div'); row.className = 'user-row';
+    row.innerHTML = `
+      <span>${u.username} ${u.isAdmin ? '<small style="color:var(--accent)">admin</small>' : ''}</span>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="del-btn" onclick="changePassword(${i})" style="color:var(--muted)">Změnit heslo</button>
+        ${u.username !== 'admin' ? `<button class="del-btn" onclick="removeUser(${i})">Smazat</button>` : ''}
+      </div>`;
+    list.appendChild(row);
+  });
 }
-function addUser() {
-  const un=document.getElementById('newUser').value.trim(),pw=document.getElementById('newPass').value;
-  if(!un||!pw)return; const users=getUsers();
-  if(users.find(u=>u.username===un)){alert('Uživatel již existuje.');return;}
-  users.push({username:un,password:pw,isAdmin:false});saveUsers(users);
-  document.getElementById('newUser').value='';document.getElementById('newPass').value='';renderUsersList();
+
+async function addUser() {
+  const un = document.getElementById('newUser').value.trim(), pw = document.getElementById('newPass').value;
+  if (!un || !pw) return;
+  const users = getUsers();
+  if (users.find(u => u.username === un)) { alert('Uživatel již existuje.'); return; }
+  users.push({ username: un, password: pw, isAdmin: false });
+  await saveUsers(users);
+  document.getElementById('newUser').value = ''; document.getElementById('newPass').value = '';
+  renderUsersList();
 }
-function removeUser(idx) { const u=getUsers();if(u[idx].username==='admin')return;u.splice(idx,1);saveUsers(u);renderUsersList(); }
+
+async function removeUser(idx) {
+  const u = getUsers(); if (u[idx].username === 'admin') return;
+  if (!confirm(`Smazat uživatele "${u[idx].username}"?`)) return;
+  u.splice(idx, 1); await saveUsers(u); renderUsersList();
+}
+
+async function changePassword(idx) {
+  const users = getUsers();
+  const newPw = prompt(`Nové heslo pro "${users[idx].username}":`);
+  if (!newPw || !newPw.trim()) return;
+  users[idx].password = newPw.trim();
+  await saveUsers(users);
+  alert('Heslo změněno ✓');
+}
 </script>
 </body>
 </html>
