@@ -8,7 +8,7 @@
   @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap');
 
   :root {
-     --bg: #1C0770;
+    --bg: #1C0770;
     --surface: #1C0770;
     --card: #21199b;
     --border: #2a2d35;
@@ -374,6 +374,9 @@
       <div class="add-user-row">
         <input type="text" id="newUser" placeholder="Uživatelské jméno">
         <input type="password" id="newPass" placeholder="Heslo">
+        <label style="display:flex;align-items:center;gap:6px;font-size:.75rem;color:var(--muted);cursor:pointer;white-space:nowrap">
+          <input type="checkbox" id="newIsAdmin" style="accent-color:var(--accent)"> Admin
+        </label>
         <button onclick="addUser()">+ Přidat</button>
       </div>
       <div class="users-list" id="usersList"></div>
@@ -386,8 +389,7 @@
 /* ══ CONFIG ══ */
 const JSONBIN_BASE = 'https://api.jsonbin.io/v3';
 const FIXED_API_KEY = "$2a$10$uwv1prS7D9tBxDuJ4Z2UQuzWMOH0DWf9rvAw/uda0HWUgzwDkJIw6";
-const FIXED_BIN_ID  = "69af0093d0ea881f40013030";
-
+const FIXED_BIN_ID  = "69ac5772d0ea881f40f98148";
 
 /* ══ LOCAL STORAGE ══ */
 function saveLocal(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
@@ -395,7 +397,6 @@ function loadLocal(k, d) { try { const v = localStorage.getItem(k); return v ? J
 
 function getApiKey() { return FIXED_API_KEY || loadLocal('jsonbin_key', ''); }
 function getBinId()  { return FIXED_BIN_ID  || loadLocal('jsonbin_bin_id', ''); }
-
 
 /* ══ USERS (stored in JSONBin — never in code) ══ */
 let usersCache = null; // loaded from cloud on login
@@ -975,12 +976,15 @@ function renderUsersList() {
 
 async function addUser() {
   const un = document.getElementById('newUser').value.trim(), pw = document.getElementById('newPass').value;
+  const isAdmin = document.getElementById('newIsAdmin').checked;
   if (!un || !pw) return;
   const users = getUsers();
   if (users.find(u => u.username === un)) { alert('Uživatel již existuje.'); return; }
-  users.push({ username: un, password: pw, isAdmin: false });
+  users.push({ username: un, password: pw, isAdmin });
   await saveUsers(users);
-  document.getElementById('newUser').value = ''; document.getElementById('newPass').value = '';
+  document.getElementById('newUser').value = '';
+  document.getElementById('newPass').value = '';
+  document.getElementById('newIsAdmin').checked = false;
   renderUsersList();
 }
 
