@@ -1,1007 +1,2409 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="cs">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Rozpis & Schůzky</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap');
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rozpis & Schůzky</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap");
 
-  :root {
-    --bg: #1C0770;
-    --surface: #1C0770;
-    --card: #21199b;
-    --border: #2a2d35;
-    --accent: #F1FF5E;
-    --accent2: #3A9AFF;
-    --text: #FFFAFA;
-    --muted: #DCDCDC;
-    --danger: #ff5f5f;
-    --success: #4ecf7e;
-  }
+      :root {
+        --bg: #1c0770;
+        --surface: #1c0770;
+        --card: #21199b;
+        --border: #2a2d35;
+        --accent: #f1ff5e;
+        --accent2: #3a9aff;
+        --text: #fffafa;
+        --muted: #dcdcdc;
+        --danger: #ff5f5f;
+        --success: #4ecf7e;
+      }
 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'DM Mono', monospace;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: "DM Mono", monospace;
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
 
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
-    pointer-events: none;
-    z-index: 0;
-    opacity: 0.4;
-  }
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+        pointer-events: none;
+        z-index: 0;
+        opacity: 0.4;
+      }
 
-  /* LOGIN */
-  #loginPage {
-    display: flex; align-items: center; justify-content: center;
-    min-height: 100vh; position: relative; z-index: 1;
-  }
-  .login-wrap { width: 100%; max-width: 420px; padding: 24px; animation: fadeUp .5s ease both; }
-  @keyframes fadeUp { from { opacity:0; transform: translateY(20px); } to { opacity:1; transform: translateY(0); } }
-  .login-logo { font-family: 'DM Serif Display', serif; font-size: 2.4rem; color: var(--accent); letter-spacing: -1px; margin-bottom: 4px; }
-  .login-sub { font-size: 0.72rem; color: var(--muted); letter-spacing: .15em; text-transform: uppercase; margin-bottom: 40px; }
-  .login-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 36px 32px; box-shadow: 0 24px 80px rgba(0,0,0,.5); }
-  .field { margin-bottom: 20px; }
-  .field label { display: block; font-size: 0.68rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
-  .field input { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; color: var(--text); font-family: 'DM Mono', monospace; font-size: 0.9rem; outline: none; transition: border-color .2s; }
-  .field input:focus { border-color: var(--accent); }
-  .login-btn { width: 100%; background: var(--accent); color: #0e0f11; border: none; border-radius: 8px; padding: 13px; font-family: 'DM Mono', monospace; font-size: 0.85rem; font-weight: 500; letter-spacing: .08em; cursor: pointer; margin-top: 4px; transition: opacity .15s, transform .1s; }
-  .login-btn:hover { opacity: .88; }
-  .login-btn:active { transform: scale(.98); }
-  .login-err { color: var(--danger); font-size: 0.75rem; margin-top: 14px; text-align: center; display: none; }
+      /* LOGIN */
+      #loginPage {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        position: relative;
+        z-index: 1;
+      }
+      .login-wrap {
+        width: 100%;
+        max-width: 420px;
+        padding: 24px;
+        animation: fadeUp 0.5s ease both;
+      }
+      @keyframes fadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .login-logo {
+        font-family: "DM Serif Display", serif;
+        font-size: 2.4rem;
+        color: var(--accent);
+        letter-spacing: -1px;
+        margin-bottom: 4px;
+      }
+      .login-sub {
+        font-size: 0.72rem;
+        color: var(--muted);
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        margin-bottom: 40px;
+      }
+      .login-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 36px 32px;
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+      }
+      .field {
+        margin-bottom: 20px;
+      }
+      .field label {
+        display: block;
+        font-size: 0.68rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 8px;
+      }
+      .field input {
+        width: 100%;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 12px 14px;
+        color: var(--text);
+        font-family: "DM Mono", monospace;
+        font-size: 0.9rem;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+      .field input:focus {
+        border-color: var(--accent);
+      }
+      .login-btn {
+        width: 100%;
+        background: var(--accent);
+        color: #0e0f11;
+        border: none;
+        border-radius: 8px;
+        padding: 13px;
+        font-family: "DM Mono", monospace;
+        font-size: 0.85rem;
+        font-weight: 500;
+        letter-spacing: 0.08em;
+        cursor: pointer;
+        margin-top: 4px;
+        transition:
+          opacity 0.15s,
+          transform 0.1s;
+      }
+      .login-btn:hover {
+        opacity: 0.88;
+      }
+      .login-btn:active {
+        transform: scale(0.98);
+      }
+      .login-err {
+        color: var(--danger);
+        font-size: 0.75rem;
+        margin-top: 14px;
+        text-align: center;
+        display: none;
+      }
 
-  /* APP */
-  #appPage { display: none; position: relative; z-index: 1; }
-  .header { display: flex; align-items: center; justify-content: space-between; padding: 20px 32px; border-bottom: 1px solid var(--border); background: rgba(14,15,17,.85); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 100; }
-  .header-title { font-family: 'DM Serif Display', serif; font-size: 1.5rem; color: var(--accent); letter-spacing: -.5px; }
-  .header-right { display: flex; align-items: center; gap: 16px; }
-  .user-badge { font-size: 0.72rem; color: var(--muted); letter-spacing: .08em; padding: 6px 12px; border: 1px solid var(--border); border-radius: 20px; }
-  .logout-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); border-radius: 8px; padding: 6px 14px; font-family: 'DM Mono', monospace; font-size: 0.72rem; cursor: pointer; transition: border-color .2s, color .2s; letter-spacing: .06em; }
-  .logout-btn:hover { border-color: var(--danger); color: var(--danger); }
+      /* APP */
+      #appPage {
+        display: none;
+        position: relative;
+        z-index: 1;
+      }
+      .header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 20px 32px;
+        border-bottom: 1px solid var(--border);
+        background: rgba(14, 15, 17, 0.85);
+        backdrop-filter: blur(10px);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+      .header-title {
+        font-family: "DM Serif Display", serif;
+        font-size: 1.5rem;
+        color: var(--accent);
+        letter-spacing: -0.5px;
+      }
+      .header-right {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      .user-badge {
+        font-size: 0.72rem;
+        color: var(--muted);
+        letter-spacing: 0.08em;
+        padding: 6px 12px;
+        border: 1px solid var(--border);
+        border-radius: 20px;
+      }
+      .logout-btn {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--muted);
+        border-radius: 8px;
+        padding: 6px 14px;
+        font-family: "DM Mono", monospace;
+        font-size: 0.72rem;
+        cursor: pointer;
+        transition:
+          border-color 0.2s,
+          color 0.2s;
+        letter-spacing: 0.06em;
+      }
+      .logout-btn:hover {
+        border-color: var(--danger);
+        color: var(--danger);
+      }
 
-  .main { padding: 40px 32px; max-width: 1000px; margin: 0 auto; }
-  .section-label { font-size: 0.65rem; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
+      .main {
+        padding: 40px 32px;
+        max-width: 1000px;
+        margin: 0 auto;
+      }
+      .section-label {
+        font-size: 0.65rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 16px;
+      }
 
-  /* Cloud bar */
-  .cloud-bar { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 18px; margin-bottom: 20px; font-size: 0.75rem; }
-  .cloud-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex-shrink: 0; transition: background .3s; }
-  .cloud-dot.ok { background: var(--success); }
-  .cloud-dot.err { background: var(--danger); }
-  .cloud-dot.loading { background: var(--accent); animation: pulse 1s infinite; }
-  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.3; } }
-  .cloud-text { color: var(--muted); }
+      /* Cloud bar */
+      .cloud-bar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 12px 18px;
+        margin-bottom: 20px;
+        font-size: 0.75rem;
+      }
+      .cloud-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--muted);
+        flex-shrink: 0;
+        transition: background 0.3s;
+      }
+      .cloud-dot.ok {
+        background: var(--success);
+      }
+      .cloud-dot.err {
+        background: var(--danger);
+      }
+      .cloud-dot.loading {
+        background: var(--accent);
+        animation: pulse 1s infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.3;
+        }
+      }
+      .cloud-text {
+        color: var(--muted);
+      }
 
-  /* Setup box */
-  .setup-box { background: rgba(232,184,75,.06); border: 1px solid rgba(232,184,75,.25); border-radius: 12px; padding: 20px 24px; margin-bottom: 24px; }
-  .setup-box p { font-size: 0.78rem; color: var(--text); margin-bottom: 12px; line-height: 1.7; }
-  .setup-box a { color: var(--accent); text-decoration: none; }
-  .setup-row { display: flex; gap: 10px; flex-wrap: wrap; }
-  .setup-row input { flex: 1; min-width: 200px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; color: var(--text); font-family: 'DM Mono', monospace; font-size: 0.8rem; outline: none; transition: border-color .2s; }
-  .setup-row input:focus { border-color: var(--accent); }
-  .setup-row button { background: var(--accent); color: #0e0f11; border: none; border-radius: 8px; padding: 10px 18px; font-family: 'DM Mono', monospace; font-size: 0.78rem; font-weight: 500; cursor: pointer; transition: opacity .15s; white-space: nowrap; }
-  .setup-row button:hover { opacity: .85; }
+      /* Setup box */
+      .setup-box {
+        background: rgba(232, 184, 75, 0.06);
+        border: 1px solid rgba(232, 184, 75, 0.25);
+        border-radius: 12px;
+        padding: 20px 24px;
+        margin-bottom: 24px;
+      }
+      .setup-box p {
+        font-size: 0.78rem;
+        color: var(--text);
+        margin-bottom: 12px;
+        line-height: 1.7;
+      }
+      .setup-box a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      .setup-row {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .setup-row input {
+        flex: 1;
+        min-width: 200px;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 10px 14px;
+        color: var(--text);
+        font-family: "DM Mono", monospace;
+        font-size: 0.8rem;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+      .setup-row input:focus {
+        border-color: var(--accent);
+      }
+      .setup-row button {
+        background: var(--accent);
+        color: #0e0f11;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 18px;
+        font-family: "DM Mono", monospace;
+        font-size: 0.78rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: opacity 0.15s;
+        white-space: nowrap;
+      }
+      .setup-row button:hover {
+        opacity: 0.85;
+      }
 
-  /* Upload */
-  .upload-zone { border: 1.5px dashed var(--border); border-radius: 12px; padding: 28px; text-align: center; cursor: pointer; transition: border-color .2s, background .2s; margin-bottom: 40px; }
-  .upload-zone:hover { border-color: var(--accent); background: rgba(232,184,75,.04); }
-  .upload-zone.drag-over { border-color: var(--accent); background: rgba(232,184,75,.07); }
-  .upload-zone input { display: none; }
-  .upload-icon { font-size: 1.8rem; margin-bottom: 10px; }
-  .upload-text { font-size: 0.8rem; color: var(--muted); }
-  .upload-text span { color: var(--accent); cursor: pointer; }
-  .upload-status { font-size: 0.75rem; margin-top: 12px; padding: 8px 14px; border-radius: 6px; display: none; }
-  .upload-status.ok { background: rgba(78,207,126,.1); color: var(--success); display: block; }
-  .upload-status.err { background: rgba(255,95,95,.1); color: var(--danger); display: block; }
+      /* Upload */
+      .upload-zone {
+        border: 1.5px dashed var(--border);
+        border-radius: 12px;
+        padding: 28px;
+        text-align: center;
+        cursor: pointer;
+        transition:
+          border-color 0.2s,
+          background 0.2s;
+        margin-bottom: 40px;
+      }
+      .upload-zone:hover {
+        border-color: var(--accent);
+        background: rgba(232, 184, 75, 0.04);
+      }
+      .upload-zone.drag-over {
+        border-color: var(--accent);
+        background: rgba(232, 184, 75, 0.07);
+      }
+      .upload-zone input {
+        display: none;
+      }
+      .upload-icon {
+        font-size: 1.8rem;
+        margin-bottom: 10px;
+      }
+      .upload-text {
+        font-size: 0.8rem;
+        color: var(--muted);
+      }
+      .upload-text span {
+        color: var(--accent);
+        cursor: pointer;
+      }
+      .upload-status {
+        font-size: 0.75rem;
+        margin-top: 12px;
+        padding: 8px 14px;
+        border-radius: 6px;
+        display: none;
+      }
+      .upload-status.ok {
+        background: rgba(78, 207, 126, 0.1);
+        color: var(--success);
+        display: block;
+      }
+      .upload-status.err {
+        background: rgba(255, 95, 95, 0.1);
+        color: var(--danger);
+        display: block;
+      }
 
-  /* Weeks */
-  .weeks-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 20px; }
-  .nav-btns { display: flex; gap: 8px; }
-  .nav-btn { background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: 6px; width: 34px; height: 34px; display: grid; place-items: center; cursor: pointer; font-size: 1rem; transition: border-color .15s, background .15s; }
-  .nav-btn:hover { border-color: var(--accent); background: rgba(232,184,75,.06); }
-  .weeks-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin-bottom: 48px; }
-  .week-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; animation: fadeUp .3s ease both; }
-  .week-card:nth-child(2) { animation-delay: .05s; }
-  .week-card:nth-child(3) { animation-delay: .1s; }
-  .week-card:nth-child(4) { animation-delay: .15s; }
-  .week-label { font-size: 0.62rem; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
-  .day-btn { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; margin-bottom: 10px; cursor: pointer; text-align: left; transition: border-color .15s, background .15s, transform .1s; position: relative; overflow: hidden; }
-  .day-btn::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; border-radius: 3px 0 0 3px; }
-  .day-btn.thu::before { background: var(--accent); }
-  .day-btn.sun::before { background: var(--accent2); }
-  .day-btn:hover { border-color: var(--accent); background: rgba(232,184,75,.05); transform: translateX(2px); }
-  .day-btn.sun:hover { border-color: var(--accent2); background: rgba(91,143,255,.05); }
-  .day-btn-name { font-size: 0.82rem; font-weight: 500; color: var(--text); margin-bottom: 4px; }
-  .day-btn-time { font-size: 0.7rem; color: var(--muted); }
-  .day-btn .dot { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); width: 7px; height: 7px; border-radius: 50%; }
-  .day-btn.thu .dot { background: var(--accent); opacity: .6; }
-  .day-btn.sun .dot { background: var(--accent2); opacity: .6; }
-  .day-btn .has-data { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 0.6rem; color: var(--success); }
+      /* Weeks */
+      .weeks-header {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        margin-bottom: 20px;
+      }
+      .nav-btns {
+        display: flex;
+        gap: 8px;
+      }
+      .nav-btn {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        color: var(--text);
+        border-radius: 6px;
+        width: 34px;
+        height: 34px;
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        font-size: 1rem;
+        transition:
+          border-color 0.15s,
+          background 0.15s;
+      }
+      .nav-btn:hover {
+        border-color: var(--accent);
+        background: rgba(232, 184, 75, 0.06);
+      }
+      .weeks-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 16px;
+        margin-bottom: 48px;
+      }
+      .week-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px;
+        animation: fadeUp 0.3s ease both;
+      }
+      .week-card:nth-child(2) {
+        animation-delay: 0.05s;
+      }
+      .week-card:nth-child(3) {
+        animation-delay: 0.1s;
+      }
+      .week-card:nth-child(4) {
+        animation-delay: 0.15s;
+      }
+      .week-label {
+        font-size: 0.62rem;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 12px;
+      }
+      .day-btn {
+        width: 100%;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 14px 16px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        text-align: left;
+        transition:
+          border-color 0.15s,
+          background 0.15s,
+          transform 0.1s;
+        position: relative;
+        overflow: hidden;
+      }
+      .day-btn::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 3px;
+        border-radius: 3px 0 0 3px;
+      }
+      .day-btn.thu::before {
+        background: var(--accent);
+      }
+      .day-btn.sun::before {
+        background: var(--accent2);
+      }
+      .day-btn.extra::before {
+        background: var(--success);
+      }
+      .day-btn:hover {
+        border-color: var(--accent);
+        background: rgba(232, 184, 75, 0.05);
+        transform: translateX(2px);
+      }
+      .day-btn.sun:hover {
+        border-color: var(--accent2);
+        background: rgba(91, 143, 255, 0.05);
+      }
+      .day-btn.extra:hover {
+        border-color: var(--success);
+        background: rgba(78, 207, 126, 0.05);
+      }
+      .day-btn-name {
+        font-size: 0.82rem;
+        font-weight: 500;
+        color: var(--text);
+        margin-bottom: 4px;
+      }
+      .day-btn-time {
+        font-size: 0.7rem;
+        color: var(--muted);
+      }
+      .day-btn .dot {
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+      }
+      .day-btn.thu .dot {
+        background: var(--accent);
+        opacity: 0.6;
+      }
+      .day-btn.sun .dot {
+        background: var(--accent2);
+        opacity: 0.6;
+      }
+      .day-btn.extra .dot {
+        background: var(--success);
+        opacity: 0.6;
+      }
+      .day-btn .has-data {
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 0.6rem;
+        color: var(--success);
+      }
+      .detail-badge.extra {
+        background: rgba(78, 207, 126, 0.15);
+        color: var(--success);
+      }
 
-  /* Detail */
-  #detailPanel { display: none; background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 32px; margin-top: 8px; animation: fadeUp .25s ease both; }
-  .detail-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 28px; }
-  .detail-title { font-family: 'DM Serif Display', serif; font-size: 1.8rem; color: var(--text); line-height: 1.1; }
-  .detail-badge { font-size: 0.68rem; letter-spacing: .12em; text-transform: uppercase; padding: 5px 12px; border-radius: 20px; margin-top: 4px; display: inline-block; }
-  .detail-badge.thu { background: rgba(232,184,75,.15); color: var(--accent); }
-  .detail-badge.sun { background: rgba(91,143,255,.15); color: var(--accent2); }
-  .close-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); border-radius: 6px; width: 32px; height: 32px; display: grid; place-items: center; cursor: pointer; font-size: 1.1rem; transition: border-color .15s, color .15s; flex-shrink: 0; }
-  .close-btn:hover { border-color: var(--danger); color: var(--danger); }
-  .schedule-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-  .schedule-table th { text-align: left; padding: 10px 14px; font-size: 0.63rem; letter-spacing: .15em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); }
-  .schedule-table td { padding: 12px 14px; border-bottom: 1px solid rgba(42,45,53,.6); vertical-align: top; }
-  .schedule-table tr:last-child td { border-bottom: none; }
-  .schedule-table tr:hover td { background: rgba(255,255,255,.02); }
-  .no-data { text-align: center; padding: 40px; color: var(--muted); font-size: 0.8rem; }
+      /* Detail */
+      #detailPanel {
+        display: none;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 32px;
+        margin-top: 8px;
+        animation: fadeUp 0.25s ease both;
+      }
+      .detail-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        margin-bottom: 28px;
+      }
+      .detail-title {
+        font-family: "DM Serif Display", serif;
+        font-size: 1.8rem;
+        color: var(--text);
+        line-height: 1.1;
+      }
+      .detail-badge {
+        font-size: 0.68rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        padding: 5px 12px;
+        border-radius: 20px;
+        margin-top: 4px;
+        display: inline-block;
+      }
+      .detail-badge.thu {
+        background: rgba(232, 184, 75, 0.15);
+        color: var(--accent);
+      }
+      .detail-badge.sun {
+        background: rgba(91, 143, 255, 0.15);
+        color: var(--accent2);
+      }
+      .close-btn {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--muted);
+        border-radius: 6px;
+        width: 32px;
+        height: 32px;
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        font-size: 1.1rem;
+        transition:
+          border-color 0.15s,
+          color 0.15s;
+        flex-shrink: 0;
+      }
+      .close-btn:hover {
+        border-color: var(--danger);
+        color: var(--danger);
+      }
+      .schedule-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.82rem;
+      }
+      .schedule-table th {
+        text-align: left;
+        padding: 10px 14px;
+        font-size: 0.63rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--muted);
+        border-bottom: 1px solid var(--border);
+      }
+      .schedule-table td {
+        padding: 12px 14px;
+        border-bottom: 1px solid rgba(42, 45, 53, 0.6);
+        vertical-align: top;
+      }
+      .schedule-table tr:last-child td {
+        border-bottom: none;
+      }
+      .schedule-table tr:hover td {
+        background: rgba(255, 255, 255, 0.02);
+      }
+      .no-data {
+        text-align: center;
+        padding: 40px;
+        color: var(--muted);
+        font-size: 0.8rem;
+      }
 
-  /* Admin */
-  .admin-section { margin-top: 48px; padding-top: 32px; border-top: 1px solid var(--border); }
-  .add-user-row { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
-  .add-user-row input { flex: 1; min-width: 160px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; color: var(--text); font-family: 'DM Mono', monospace; font-size: 0.82rem; outline: none; transition: border-color .2s; }
-  .add-user-row input:focus { border-color: var(--accent); }
-  .add-user-row button { background: var(--accent); color: #0e0f11; border: none; border-radius: 8px; padding: 10px 18px; font-family: 'DM Mono', monospace; font-size: 0.78rem; font-weight: 500; cursor: pointer; transition: opacity .15s; }
-  .add-user-row button:hover { opacity: .85; }
-  .users-list { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
-  .user-row { display: flex; align-items: center; justify-content: space-between; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 16px; font-size: 0.8rem; }
-  .user-row .del-btn { background: transparent; border: none; color: var(--muted); cursor: pointer; font-size: 0.75rem; transition: color .15s; }
-  .user-row .del-btn:hover { color: var(--danger); }
+      /* Admin */
+      .admin-section {
+        margin-top: 48px;
+        padding-top: 32px;
+        border-top: 1px solid var(--border);
+      }
+      .add-user-row {
+        display: flex;
+        gap: 10px;
+        margin-top: 16px;
+        flex-wrap: wrap;
+      }
+      .add-user-row input {
+        flex: 1;
+        min-width: 160px;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 10px 14px;
+        color: var(--text);
+        font-family: "DM Mono", monospace;
+        font-size: 0.82rem;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+      .add-user-row input:focus {
+        border-color: var(--accent);
+      }
+      .add-user-row button {
+        background: var(--accent);
+        color: #0e0f11;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 18px;
+        font-family: "DM Mono", monospace;
+        font-size: 0.78rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: opacity 0.15s;
+      }
+      .add-user-row button:hover {
+        opacity: 0.85;
+      }
+      .users-list {
+        margin-top: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .user-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 10px 16px;
+        font-size: 0.8rem;
+      }
+      .user-row .del-btn {
+        background: transparent;
+        border: none;
+        color: var(--muted);
+        cursor: pointer;
+        font-size: 0.75rem;
+        transition: color 0.15s;
+      }
+      .user-row .del-btn:hover {
+        color: var(--danger);
+      }
 
-  /* Tabs */
-  .tabs { display: flex; gap: 4px; padding: 0 32px; background: rgba(14,15,17,.85); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
-  .tab-btn { background: transparent; border: none; border-bottom: 2px solid transparent; color: var(--muted); font-family: 'DM Mono', monospace; font-size: 0.75rem; letter-spacing: .1em; text-transform: uppercase; padding: 14px 18px; cursor: pointer; transition: color .15s, border-color .15s; margin-bottom: -1px; }
-  .tab-btn:hover { color: var(--text); }
-  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
-  .tab-content { display: none; }
-  .tab-content.active { display: block; }
+      /* Tabs */
+      .tabs {
+        display: flex;
+        gap: 4px;
+        padding: 0 32px;
+        background: rgba(14, 15, 17, 0.85);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid var(--border);
+      }
+      .tab-btn {
+        background: transparent;
+        border: none;
+        border-bottom: 2px solid transparent;
+        color: var(--muted);
+        font-family: "DM Mono", monospace;
+        font-size: 0.75rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 14px 18px;
+        cursor: pointer;
+        transition:
+          color 0.15s,
+          border-color 0.15s;
+        margin-bottom: -1px;
+      }
+      .tab-btn:hover {
+        color: var(--text);
+      }
+      .tab-btn.active {
+        color: var(--accent);
+        border-bottom-color: var(--accent);
+      }
+      .tab-content {
+        display: none;
+      }
+      .tab-content.active {
+        display: block;
+      }
 
-  /* Meetings */
-  .meetings-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 48px; }
-  .meeting-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; display: flex; align-items: flex-start; gap: 20px; transition: border-color .15s; cursor: pointer; position: relative; overflow: hidden; }
-  .meeting-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent2); border-radius: 3px 0 0 3px; }
-  .meeting-card:hover { border-color: var(--accent2); }
-  .meeting-date-box { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; text-align: center; min-width: 56px; flex-shrink: 0; }
-  .meeting-date-day { font-family: 'DM Serif Display', serif; font-size: 1.6rem; color: var(--accent2); line-height: 1; }
-  .meeting-date-mon { font-size: 0.6rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-top: 2px; }
-  .meeting-info { flex: 1; }
-  .meeting-title { font-size: 0.92rem; font-weight: 500; color: var(--text); margin-bottom: 6px; }
-  .meeting-meta { font-size: 0.72rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 12px; }
-  .meeting-meta span::before { margin-right: 4px; }
-  .meeting-desc { font-size: 0.75rem; color: var(--muted); margin-top: 8px; line-height: 1.6; border-top: 1px solid var(--border); padding-top: 8px; display: none; }
-  .meeting-card.expanded .meeting-desc { display: block; }
-  .meeting-del { position: absolute; right: 16px; top: 16px; background: transparent; border: none; color: var(--muted); cursor: pointer; font-size: 0.8rem; transition: color .15s; display: none; }
-  .meeting-del:hover { color: var(--danger); }
+      /* Meetings */
+      .meetings-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: 48px;
+      }
+      .meeting-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px 24px;
+        display: flex;
+        align-items: flex-start;
+        gap: 20px;
+        transition: border-color 0.15s;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+      }
+      .meeting-card::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 3px;
+        background: var(--accent2);
+        border-radius: 3px 0 0 3px;
+      }
+      .meeting-card:hover {
+        border-color: var(--accent2);
+      }
+      .meeting-date-box {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 10px 14px;
+        text-align: center;
+        min-width: 56px;
+        flex-shrink: 0;
+      }
+      .meeting-date-day {
+        font-family: "DM Serif Display", serif;
+        font-size: 1.6rem;
+        color: var(--accent2);
+        line-height: 1;
+      }
+      .meeting-date-mon {
+        font-size: 0.6rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-top: 2px;
+      }
+      .meeting-info {
+        flex: 1;
+      }
+      .meeting-title {
+        font-size: 0.92rem;
+        font-weight: 500;
+        color: var(--text);
+        margin-bottom: 6px;
+      }
+      .meeting-meta {
+        font-size: 0.72rem;
+        color: var(--muted);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      .meeting-meta span::before {
+        margin-right: 4px;
+      }
+      .meeting-desc {
+        font-size: 0.75rem;
+        color: var(--muted);
+        margin-top: 8px;
+        line-height: 1.6;
+        border-top: 1px solid var(--border);
+        padding-top: 8px;
+        display: none;
+      }
+      .meeting-card.expanded .meeting-desc {
+        display: block;
+      }
+      .meeting-del {
+        position: absolute;
+        right: 16px;
+        top: 16px;
+        background: transparent;
+        border: none;
+        color: var(--muted);
+        cursor: pointer;
+        font-size: 0.8rem;
+        transition: color 0.15s;
+        display: none;
+      }
+      .meeting-del:hover {
+        color: var(--danger);
+      }
 
-  /* Add meeting form */
-  .add-meeting-box { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 28px; }
-  .add-meeting-box .section-label { margin-bottom: 16px; }
-  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .form-grid .full { grid-column: 1 / -1; }
-  .form-input { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; color: var(--text); font-family: 'DM Mono', monospace; font-size: 0.82rem; outline: none; transition: border-color .2s; }
-  .form-input:focus { border-color: var(--accent2); }
-  textarea.form-input { resize: vertical; min-height: 70px; }
-  .form-btn { background: var(--accent2); color: #fff; border: none; border-radius: 8px; padding: 11px 22px; font-family: 'DM Mono', monospace; font-size: 0.78rem; font-weight: 500; cursor: pointer; transition: opacity .15s; margin-top: 4px; }
-  .form-btn:hover { opacity: .85; }
-  .no-meetings { text-align: center; padding: 48px; color: var(--muted); font-size: 0.8rem; }
+      /* Add meeting form */
+      .add-meeting-box {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 28px;
+      }
+      .add-meeting-box .section-label {
+        margin-bottom: 16px;
+      }
+      .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      .form-grid .full {
+        grid-column: 1 / -1;
+      }
+      .form-input {
+        width: 100%;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 10px 14px;
+        color: var(--text);
+        font-family: "DM Mono", monospace;
+        font-size: 0.82rem;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+      .form-input:focus {
+        border-color: var(--accent2);
+      }
+      textarea.form-input {
+        resize: vertical;
+        min-height: 70px;
+      }
+      .form-btn {
+        background: var(--accent2);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 11px 22px;
+        font-family: "DM Mono", monospace;
+        font-size: 0.78rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: opacity 0.15s;
+        margin-top: 4px;
+      }
+      .form-btn:hover {
+        opacity: 0.85;
+      }
+      .no-meetings {
+        text-align: center;
+        padding: 48px;
+        color: var(--muted);
+        font-size: 0.8rem;
+      }
 
-  @media (max-width: 600px) {
-    .header { padding: 16px 18px; }
-    .tabs { padding: 0 12px; }
-    .main { padding: 24px 18px; }
-    .weeks-grid { grid-template-columns: 1fr; }
-    .form-grid { grid-template-columns: 1fr; }
-    .meeting-card { flex-direction: column; gap: 12px; }
-  }
-</style>
-</head>
-<body>
-
-<!-- LOGIN -->
-<div id="loginPage">
-  <div class="login-wrap">
-    <div class="login-logo">Rozpis</div>
-    <div class="login-sub">Správa směn</div>
-    <div class="login-card">
-      <div class="field">
-        <label>Uživatelské jméno</label>
-        <input type="text" id="loginUser" placeholder="jméno" autocomplete="username">
-      </div>
-      <div class="field">
-        <label>Heslo</label>
-        <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password">
-      </div>
-      <button class="login-btn" onclick="doLogin()">Přihlásit se →</button>
-      <div class="login-err" id="loginErr">Nesprávné přihlašovací údaje.</div>
-      <div style="text-align:center;margin-top:16px">
-        <button onclick="showFirstRun()" style="background:none;border:none;color:var(--muted);font-family:'DM Mono',monospace;font-size:0.7rem;cursor:pointer;text-decoration:underline;letter-spacing:.05em">První spuštění / nastavení cloudu</button>
-      </div>
-    </div>
-
-    <!-- First-run setup panel -->
-    <div id="firstRunPanel" style="display:none;margin-top:16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px">
-      <div style="font-size:.75rem;color:var(--text);line-height:1.7;margin-bottom:14px">
-        <strong style="color:var(--accent)">První spuštění</strong><br>
-        Vlož svůj JSONBin API klíč — uživatelé a hesla se uloží do cloudu a nikdy nebudou viditelní v kódu.
-      </div>
-      <div style="display:flex;flex-direction:column;gap:10px">
-        <input type="text" id="frApiKey" class="field" placeholder="JSONBin API klíč ($2b$10$...)" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-family:'DM Mono',monospace;font-size:.82rem;outline:none;width:100%">
-        <input type="text" id="frBinId" placeholder="Bin ID (pokud už existuje — jinak nech prázdné)" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-family:'DM Mono',monospace;font-size:.82rem;outline:none;width:100%">
-        <input type="text" id="frAdminUser" placeholder="Uživatelské jméno admina" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-family:'DM Mono',monospace;font-size:.82rem;outline:none;width:100%">
-        <input type="password" id="frAdminPass" placeholder="Heslo admina" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-family:'DM Mono',monospace;font-size:.82rem;outline:none;width:100%">
-        <button onclick="doFirstRun()" style="background:var(--accent);color:#0e0f11;border:none;border-radius:8px;padding:11px;font-family:'DM Mono',monospace;font-size:.82rem;font-weight:500;cursor:pointer">Nastavit a přihlásit →</button>
-        <div id="frErr" style="display:none;color:var(--danger);font-size:.72rem;text-align:center"></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- APP -->
-<div id="appPage">
-  <header class="header">
-    <div class="header-title">Rozpis směn</div>
-    <div class="header-right">
-      <div class="user-badge" id="userBadge">—</div>
-      <button class="logout-btn" onclick="doLogout()">Odhlásit</button>
-    </div>
-  </header>
-
-  <!-- TABS -->
-  <nav class="tabs">
-    <button class="tab-btn active" onclick="switchTab('rozpis')">📋 Rozpis</button>
-    <button class="tab-btn" onclick="switchTab('schuzky')">📅 Schůzky</button>
-  </nav>
-
-  <main class="main">
-
-    <!-- ══ TAB: ROZPIS ══ -->
-    <div id="tab-rozpis" class="tab-content active">
-
-    <div class="cloud-bar">
-      <div class="cloud-dot" id="cloudDot"></div>
-      <div class="cloud-text" id="cloudText">Připojuji se…</div>
-    </div>
-
-    <!-- API key setup -->
-    <div class="setup-box" id="setupBox" style="display:none">
-      <p>
-        <strong>Jednorázové nastavení cloudu</strong> — hesla uživatelů budou uložena v cloudu, ne v kódu stránky.<br><br>
-        1. Jdi na <a href="https://jsonbin.io" target="_blank">jsonbin.io</a> → <strong>Sign Up</strong> (zdarma, jen email)<br>
-        2. Po přihlášení klikni na <strong>API Keys</strong> → <strong>+ Create Access Key</strong> → zkopíruj klíč<br>
-        3. Vlož klíč sem a klikni Uložit — poté přidej uživatele v sekci Správa uživatelů níže:
-      </p>
-      <div class="setup-row">
-        <input type="text" id="apiKeyInput" placeholder="$2b$10$xxxxxxxxxxxxxxxxxxxxxxxx...">
-        <button onclick="saveApiKey()">Uložit a připojit</button>
-      </div>
-    </div>
-
-    <!-- Upload (only admin) -->
-    <div id="uploadSection" style="display:none">
-      <div class="section-label">Nahrát rozpis</div>
-      <div class="upload-zone" id="uploadZone">
-        <input type="file" id="fileInput" accept=".csv,.xlsx,.xls,.txt">
-        <div class="upload-icon">📋</div>
-        <div class="upload-text">Přetáhni soubor sem nebo <span onclick="document.getElementById('fileInput').click()">klikni pro výběr</span></div>
-        <div class="upload-text" style="margin-top:6px; font-size:.7rem;">CSV nebo Excel (.xlsx) — první sloupec = datum</div>
-        <div class="upload-status" id="uploadStatus"></div>
-      </div>
-    </div>
-
-    <!-- Weeks -->
-    <div class="weeks-header">
-      <div class="section-label" style="margin:0">Nadcházející termíny</div>
-      <div class="nav-btns">
-        <button class="nav-btn" onclick="shiftWeeks(-4)" title="Zpět">◂</button>
-        <button class="nav-btn" onclick="shiftWeeks(4)" title="Dopředu">▸</button>
-      </div>
-    </div>
-    <div class="weeks-grid" id="weeksGrid"></div>
-
-    <div id="detailPanel">
-      <div class="detail-header">
-        <div>
-          <div class="detail-title" id="detailTitle"></div>
-          <div class="detail-badge" id="detailBadge"></div>
+      @media (max-width: 600px) {
+        .header {
+          padding: 16px 18px;
+        }
+        .tabs {
+          padding: 0 12px;
+        }
+        .main {
+          padding: 24px 18px;
+        }
+        .weeks-grid {
+          grid-template-columns: 1fr;
+        }
+        .form-grid {
+          grid-template-columns: 1fr;
+        }
+        .meeting-card {
+          flex-direction: column;
+          gap: 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- LOGIN -->
+    <div id="loginPage">
+      <div class="login-wrap">
+        <div class="login-logo">Rozpis</div>
+        <div class="login-sub">Správa směn</div>
+        <div class="login-card">
+          <div class="field">
+            <label>Uživatelské jméno</label>
+            <input
+              type="text"
+              id="loginUser"
+              placeholder="jméno"
+              autocomplete="username"
+            />
+          </div>
+          <div class="field">
+            <label>Heslo</label>
+            <input
+              type="password"
+              id="loginPass"
+              placeholder="••••••••"
+              autocomplete="current-password"
+            />
+          </div>
+          <button class="login-btn" onclick="doLogin()">Přihlásit se →</button>
+          <div class="login-err" id="loginErr">
+            Nesprávné přihlašovací údaje.
+          </div>
+          <div style="text-align: center; margin-top: 16px">
+            <button
+              onclick="showFirstRun()"
+              style="
+                background: none;
+                border: none;
+                color: var(--muted);
+                font-family: &quot;DM Mono&quot;, monospace;
+                font-size: 0.7rem;
+                cursor: pointer;
+                text-decoration: underline;
+                letter-spacing: 0.05em;
+              "
+            >
+              První spuštění / nastavení cloudu
+            </button>
+          </div>
         </div>
-        <button class="close-btn" onclick="closeDetail()">✕</button>
+
+        <!-- First-run setup panel -->
+        <div
+          id="firstRunPanel"
+          style="
+            display: none;
+            margin-top: 16px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+          "
+        >
+          <div
+            style="
+              font-size: 0.75rem;
+              color: var(--text);
+              line-height: 1.7;
+              margin-bottom: 14px;
+            "
+          >
+            <strong style="color: var(--accent)">První spuštění</strong><br />
+            Vlož svůj JSONBin API klíč — uživatelé a hesla se uloží do cloudu a
+            nikdy nebudou viditelní v kódu.
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 10px">
+            <input
+              type="text"
+              id="frApiKey"
+              class="field"
+              placeholder="JSONBin API klíč ($2b$10$...)"
+              style="
+                background: var(--bg);
+                border: 1px solid var(--border);
+                border-radius: 8px;
+                padding: 10px 14px;
+                color: var(--text);
+                font-family: &quot;DM Mono&quot;, monospace;
+                font-size: 0.82rem;
+                outline: none;
+                width: 100%;
+              "
+            />
+            <input
+              type="text"
+              id="frBinId"
+              placeholder="Bin ID (pokud už existuje — jinak nech prázdné)"
+              style="
+                background: var(--bg);
+                border: 1px solid var(--border);
+                border-radius: 8px;
+                padding: 10px 14px;
+                color: var(--text);
+                font-family: &quot;DM Mono&quot;, monospace;
+                font-size: 0.82rem;
+                outline: none;
+                width: 100%;
+              "
+            />
+            <input
+              type="text"
+              id="frAdminUser"
+              placeholder="Uživatelské jméno admina"
+              style="
+                background: var(--bg);
+                border: 1px solid var(--border);
+                border-radius: 8px;
+                padding: 10px 14px;
+                color: var(--text);
+                font-family: &quot;DM Mono&quot;, monospace;
+                font-size: 0.82rem;
+                outline: none;
+                width: 100%;
+              "
+            />
+            <input
+              type="password"
+              id="frAdminPass"
+              placeholder="Heslo admina"
+              style="
+                background: var(--bg);
+                border: 1px solid var(--border);
+                border-radius: 8px;
+                padding: 10px 14px;
+                color: var(--text);
+                font-family: &quot;DM Mono&quot;, monospace;
+                font-size: 0.82rem;
+                outline: none;
+                width: 100%;
+              "
+            />
+            <button
+              onclick="doFirstRun()"
+              style="
+                background: var(--accent);
+                color: #0e0f11;
+                border: none;
+                border-radius: 8px;
+                padding: 11px;
+                font-family: &quot;DM Mono&quot;, monospace;
+                font-size: 0.82rem;
+                font-weight: 500;
+                cursor: pointer;
+              "
+            >
+              Nastavit a přihlásit →
+            </button>
+            <div
+              id="frErr"
+              style="
+                display: none;
+                color: var(--danger);
+                font-size: 0.72rem;
+                text-align: center;
+              "
+            ></div>
+          </div>
+        </div>
       </div>
-      <div id="detailContent"></div>
     </div>
 
-    </div> <!-- end tab-rozpis -->
+    <!-- APP -->
+    <div id="appPage">
+      <header class="header">
+        <div class="header-title">Rozpis směn</div>
+        <div class="header-right">
+          <div class="user-badge" id="userBadge">—</div>
+          <button class="logout-btn" onclick="doLogout()">Odhlásit</button>
+        </div>
+      </header>
 
-    <!-- ══ TAB: SCHŮZKY ══ -->
-    <div id="tab-schuzky" class="tab-content">
+      <!-- TABS -->
+      <nav class="tabs">
+        <button class="tab-btn active" onclick="switchTab('rozpis')">
+          📋 Rozpis
+        </button>
+        <button class="tab-btn" onclick="switchTab('schuzky')">
+          📅 Schůzky
+        </button>
+      </nav>
 
-      <!-- Add meeting form (admin only) -->
-      <div class="add-meeting-box" id="addMeetingBox" style="display:none">
-        <div class="section-label">Přidat schůzku</div>
-        <div class="form-grid">
-          <div>
-            <input type="text" class="form-input" id="mTitle" placeholder="Název schůzky *">
+      <main class="main">
+        <!-- ══ TAB: ROZPIS ══ -->
+        <div id="tab-rozpis" class="tab-content active">
+          <div class="cloud-bar">
+            <div class="cloud-dot" id="cloudDot"></div>
+            <div class="cloud-text" id="cloudText">Připojuji se…</div>
           </div>
-          <div>
-            <input type="date" class="form-input" id="mDate">
+
+          <!-- API key setup -->
+          <div class="setup-box" id="setupBox" style="display: none">
+            <p>
+              <strong>Jednorázové nastavení cloudu</strong> — hesla uživatelů
+              budou uložena v cloudu, ne v kódu stránky.<br /><br />
+              1. Jdi na
+              <a href="https://jsonbin.io" target="_blank">jsonbin.io</a> →
+              <strong>Sign Up</strong> (zdarma, jen email)<br />
+              2. Po přihlášení klikni na <strong>API Keys</strong> →
+              <strong>+ Create Access Key</strong> → zkopíruj klíč<br />
+              3. Vlož klíč sem a klikni Uložit — poté přidej uživatele v sekci
+              Správa uživatelů níže:
+            </p>
+            <div class="setup-row">
+              <input
+                type="text"
+                id="apiKeyInput"
+                placeholder="$2b$10$xxxxxxxxxxxxxxxxxxxxxxxx..."
+              />
+              <button onclick="saveApiKey()">Uložit a připojit</button>
+            </div>
           </div>
-          <div>
-            <input type="time" class="form-input" id="mTime" placeholder="Čas (např. 18:00)">
+
+          <!-- Upload (only admin) -->
+          <div id="uploadSection" style="display: none">
+            <div class="section-label">Nahrát rozpis</div>
+
+            <!-- Custom day selector -->
+            <div class="add-meeting-box" style="margin-bottom: 16px">
+              <div class="section-label">Přidat vlastní termín</div>
+              <div class="form-grid">
+                <div>
+                  <input type="date" class="form-input" id="customDate" />
+                </div>
+                <div>
+                  <input
+                    type="time"
+                    class="form-input"
+                    id="customTime"
+                    value="18:00"
+                  />
+                </div>
+                <div class="full">
+                  <input
+                    type="text"
+                    class="form-input"
+                    id="customLabel"
+                    placeholder="Popis termínu (např. Mimořádná schůze)"
+                  />
+                </div>
+              </div>
+              <button
+                class="form-btn"
+                style="margin-top: 12px"
+                onclick="addCustomDay()"
+              >
+                + Přidat termín
+              </button>
+              <div
+                id="customDayStatus"
+                style="font-size: 0.75rem; margin-top: 10px; display: none"
+              ></div>
+            </div>
+
+            <!-- File upload -->
+            <div class="upload-zone" id="uploadZone">
+              <input type="file" id="fileInput" accept=".csv,.xlsx,.xls,.txt" />
+              <div class="upload-icon">📋</div>
+              <div class="upload-text">
+                Přetáhni soubor sem nebo
+                <span onclick="document.getElementById('fileInput').click()"
+                  >klikni pro výběr</span
+                >
+              </div>
+              <div
+                class="upload-text"
+                style="margin-top: 6px; font-size: 0.7rem"
+              >
+                CSV nebo Excel (.xlsx) — první sloupec = datum
+              </div>
+              <div class="upload-status" id="uploadStatus"></div>
+            </div>
           </div>
-          <div>
-            <input type="text" class="form-input" id="mPlace" placeholder="Místo">
+
+          <!-- Weeks -->
+          <div class="weeks-header">
+            <div class="section-label" style="margin: 0">
+              Nadcházející termíny
+            </div>
+            <div class="nav-btns">
+              <button class="nav-btn" onclick="shiftWeeks(-4)" title="Zpět">
+                ◂
+              </button>
+              <button class="nav-btn" onclick="shiftWeeks(4)" title="Dopředu">
+                ▸
+              </button>
+            </div>
           </div>
-          <div class="full">
-            <textarea class="form-input" id="mDesc" placeholder="Poznámka / popis (nepovinné)"></textarea>
+          <div class="weeks-grid" id="weeksGrid"></div>
+
+          <div id="detailPanel">
+            <div class="detail-header">
+              <div>
+                <div class="detail-title" id="detailTitle"></div>
+                <div class="detail-badge" id="detailBadge"></div>
+              </div>
+              <button class="close-btn" onclick="closeDetail()">✕</button>
+            </div>
+            <div id="detailContent"></div>
           </div>
         </div>
-        <button class="form-btn" onclick="addMeeting()">+ Přidat schůzku</button>
+        <!-- end tab-rozpis -->
 
-        <!-- Upload CSV for meetings -->
-        <div style="margin-top:20px; padding-top:16px; border-top:1px solid var(--border)">
-          <div class="section-label">Nebo nahrát ze souboru</div>
-          <div class="upload-zone" id="meetingUploadZone" style="margin-bottom:0">
-            <input type="file" id="meetingFileInput" accept=".csv,.xlsx,.xls">
-            <div class="upload-icon">📅</div>
-            <div class="upload-text">CSV / Excel: sloupce <strong>Datum;Název;Čas;Místo;Popis</strong></div>
-            <div class="upload-text" style="margin-top:4px;font-size:.7rem;">Datum ve formátu DD.MM.RRRR nebo RRRR-MM-DD</div>
-            <div class="upload-status" id="meetingUploadStatus"></div>
+        <!-- ══ TAB: SCHŮZKY ══ -->
+        <div id="tab-schuzky" class="tab-content">
+          <!-- Add meeting form (admin only) -->
+          <div class="add-meeting-box" id="addMeetingBox" style="display: none">
+            <div class="section-label">Přidat schůzku</div>
+            <div class="form-grid">
+              <div>
+                <input
+                  type="text"
+                  class="form-input"
+                  id="mTitle"
+                  placeholder="Název schůzky *"
+                />
+              </div>
+              <div>
+                <input type="date" class="form-input" id="mDate" />
+              </div>
+              <div>
+                <input
+                  type="time"
+                  class="form-input"
+                  id="mTime"
+                  placeholder="Čas (např. 18:00)"
+                />
+              </div>
+              <div>
+                <input
+                  type="text"
+                  class="form-input"
+                  id="mPlace"
+                  placeholder="Místo"
+                />
+              </div>
+              <div class="full">
+                <textarea
+                  class="form-input"
+                  id="mDesc"
+                  placeholder="Poznámka / popis (nepovinné)"
+                ></textarea>
+              </div>
+            </div>
+            <button class="form-btn" onclick="addMeeting()">
+              + Přidat schůzku
+            </button>
+
+            <!-- Upload CSV for meetings -->
+            <div
+              style="
+                margin-top: 20px;
+                padding-top: 16px;
+                border-top: 1px solid var(--border);
+              "
+            >
+              <div class="section-label">Nebo nahrát ze souboru</div>
+              <div
+                class="upload-zone"
+                id="meetingUploadZone"
+                style="margin-bottom: 0"
+              >
+                <input
+                  type="file"
+                  id="meetingFileInput"
+                  accept=".csv,.xlsx,.xls"
+                />
+                <div class="upload-icon">📅</div>
+                <div class="upload-text">
+                  CSV / Excel: sloupce
+                  <strong>Datum;Název;Čas;Místo;Popis</strong>
+                </div>
+                <div
+                  class="upload-text"
+                  style="margin-top: 4px; font-size: 0.7rem"
+                >
+                  Datum ve formátu DD.MM.RRRR nebo RRRR-MM-DD
+                </div>
+                <div class="upload-status" id="meetingUploadStatus"></div>
+              </div>
+            </div>
           </div>
+
+          <!-- Meetings list -->
+          <div class="weeks-header" style="margin-bottom: 16px">
+            <div class="section-label" style="margin: 0">
+              Nadcházející schůzky
+            </div>
+            <div class="nav-btns">
+              <label
+                style="
+                  font-size: 0.7rem;
+                  color: var(--muted);
+                  display: flex;
+                  align-items: center;
+                  gap: 8px;
+                  cursor: pointer;
+                "
+              >
+                <input
+                  type="checkbox"
+                  id="showPast"
+                  onchange="renderMeetings()"
+                  style="accent-color: var(--accent2)"
+                />
+                Zobrazit minulé
+              </label>
+            </div>
+          </div>
+          <div id="meetingsList"></div>
         </div>
-      </div>
+        <!-- end tab-schuzky -->
 
-      <!-- Meetings list -->
-      <div class="weeks-header" style="margin-bottom:16px">
-        <div class="section-label" style="margin:0">Nadcházející schůzky</div>
-        <div class="nav-btns">
-          <label style="font-size:.7rem;color:var(--muted);display:flex;align-items:center;gap:8px;cursor:pointer">
-            <input type="checkbox" id="showPast" onchange="renderMeetings()" style="accent-color:var(--accent2)"> Zobrazit minulé
-          </label>
+        <!-- Admin -->
+        <div class="admin-section" id="adminSection" style="display: none">
+          <div class="section-label">Správa uživatelů</div>
+          <div class="add-user-row">
+            <input type="text" id="newUser" placeholder="Uživatelské jméno" />
+            <input type="password" id="newPass" placeholder="Heslo" />
+            <label
+              style="
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                font-size: 0.75rem;
+                color: var(--muted);
+                cursor: pointer;
+                white-space: nowrap;
+              "
+            >
+              <input
+                type="checkbox"
+                id="newIsAdmin"
+                style="accent-color: var(--accent)"
+              />
+              Admin
+            </label>
+            <button onclick="addUser()">+ Přidat</button>
+          </div>
+          <div class="users-list" id="usersList"></div>
         </div>
-      </div>
-      <div id="meetingsList"></div>
-
-    </div> <!-- end tab-schuzky -->
-
-    <!-- Admin -->
-    <div class="admin-section" id="adminSection" style="display:none">
-      <div class="section-label">Správa uživatelů</div>
-      <div class="add-user-row">
-        <input type="text" id="newUser" placeholder="Uživatelské jméno">
-        <input type="password" id="newPass" placeholder="Heslo">
-        <label style="display:flex;align-items:center;gap:6px;font-size:.75rem;color:var(--muted);cursor:pointer;white-space:nowrap">
-          <input type="checkbox" id="newIsAdmin" style="accent-color:var(--accent)"> Admin
-        </label>
-        <button onclick="addUser()">+ Přidat</button>
-      </div>
-      <div class="users-list" id="usersList"></div>
+      </main>
     </div>
 
-  </main>
-</div>
+    <script>
+      /* ══ CONFIG ══ */
+      const JSONBIN_BASE = "https://api.jsonbin.io/v3";
 
-<script>
-/* ══ CONFIG ══ */
-const JSONBIN_BASE = 'https://api.jsonbin.io/v3';
-const FIXED_API_KEY = "$2a$10$uwv1prS7D9tBxDuJ4Z2UQuzWMOH0DWf9rvAw/uda0HWUgzwDkJIw6";
-const FIXED_BIN_ID  = "69ac5772d0ea881f40f98148";
+      /* ══ LOCAL STORAGE ══ */
+      function saveLocal(k, v) {
+        localStorage.setItem(k, JSON.stringify(v));
+      }
+      function loadLocal(k, d) {
+        try {
+          const v = localStorage.getItem(k);
+          return v ? JSON.parse(v) : d;
+        } catch {
+          return d;
+        }
+      }
 
-/* ══ LOCAL STORAGE ══ */
-function saveLocal(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
-function loadLocal(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } }
+      function getApiKey() {
+        return loadLocal("jsonbin_key", "");
+      }
+      function getBinId() {
+        return loadLocal("jsonbin_bin_id", "");
+      }
 
-function getApiKey() { return FIXED_API_KEY || loadLocal('jsonbin_key', ''); }
-function getBinId()  { return FIXED_BIN_ID  || loadLocal('jsonbin_bin_id', ''); }
+      /* ══ USERS (stored in JSONBin — never in code) ══ */
+      let usersCache = null; // loaded from cloud on login
 
-/* ══ USERS (stored in JSONBin — never in code) ══ */
-let usersCache = null; // loaded from cloud on login
+      function getUsers() {
+        // fallback to local cache only — no hardcoded passwords
+        return usersCache || loadLocal("users_cache", []);
+      }
+      async function loadUsers() {
+        const key = getApiKey();
+        const binId = getBinId();
+        if (!key || !binId) {
+          usersCache = loadLocal("users_cache", []);
+          return;
+        }
+        try {
+          const res = await fetch(`${JSONBIN_BASE}/b/${binId}/latest`, {
+            headers: { "X-Master-Key": key },
+          });
+          if (!res.ok) throw new Error();
+          const data = await res.json();
+          usersCache = data.record.users || [];
+          saveLocal("users_cache", usersCache);
+        } catch {
+          usersCache = loadLocal("users_cache", []);
+        }
+      }
+      async function saveUsers(u) {
+        usersCache = u;
+        saveLocal("users_cache", u);
+        await cloudSaveAll();
+      }
 
-function getUsers() {
-  // fallback to local cache only — no hardcoded passwords
-  return usersCache || loadLocal('users_cache', []);
-}
-async function loadUsers() {
-  const key = getApiKey(); const binId = getBinId();
-  if (!key || !binId) { usersCache = loadLocal('users_cache', []); return; }
-  try {
-    const res = await fetch(`${JSONBIN_BASE}/b/${binId}/latest`, { headers: { 'X-Master-Key': key } });
-    if (!res.ok) throw new Error();
-    const data = await res.json();
-    usersCache = data.record.users || [];
-    saveLocal('users_cache', usersCache);
-  } catch { usersCache = loadLocal('users_cache', []); }
-}
-async function saveUsers(u) {
-  usersCache = u; saveLocal('users_cache', u);
-  await cloudSaveAll();
-}
+      // First-time setup: if no users exist in cloud yet, create defaults
+      async function ensureDefaultUsers() {
+        const key = getApiKey();
+        const binId = getBinId();
+        if (!key || !binId) return;
+        try {
+          const res = await fetch(`${JSONBIN_BASE}/b/${binId}/latest`, {
+            headers: { "X-Master-Key": key },
+          });
+          if (!res.ok) return;
+          const data = await res.json();
+          if (!data.record.users || data.record.users.length === 0) {
+            // No users yet — user must go through first-run setup
+            usersCache = [];
+            saveLocal("users_cache", []);
+          }
+        } catch {}
+      }
 
-// First-time setup: if no users exist in cloud yet, create defaults
-async function ensureDefaultUsers() {
-  const key = getApiKey(); const binId = getBinId();
-  if (!key || !binId) return;
-  try {
-    const res = await fetch(`${JSONBIN_BASE}/b/${binId}/latest`, { headers: { 'X-Master-Key': key } });
-    if (!res.ok) return;
-    const data = await res.json();
-    if (!data.record.users || data.record.users.length === 0) {
-      // No users yet — user must go through first-run setup
-      usersCache = [];
-      saveLocal('users_cache', []);
-    }
-  } catch {}
-}
+      /* ══ CLOUD ══ */
+      let scheduleCache = {};
 
-/* ══ CLOUD ══ */
-let scheduleCache = {};
+      function setCloudStatus(state, msg) {
+        const dot = document.getElementById("cloudDot");
+        dot.className =
+          "cloud-dot " +
+          (state === "ok"
+            ? "ok"
+            : state === "err"
+              ? "err"
+              : state === "loading"
+                ? "loading"
+                : "");
+        document.getElementById("cloudText").textContent = msg;
+      }
 
-function setCloudStatus(state, msg) {
-  const dot = document.getElementById('cloudDot');
-  dot.className = 'cloud-dot ' + (state === 'ok' ? 'ok' : state === 'err' ? 'err' : state === 'loading' ? 'loading' : '');
-  document.getElementById('cloudText').textContent = msg;
-}
+      async function cloudLoad() {
+        const key = getApiKey();
+        if (!key) {
+          setCloudStatus("", "Cloud není nastaven — data se sdílet nebudou");
+          return null;
+        }
+        setCloudStatus("loading", "Načítám data z cloudu…");
+        try {
+          let binId = getBinId();
+          if (!binId) {
+            const res = await fetch(`${JSONBIN_BASE}/b`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "X-Master-Key": key,
+                "X-Bin-Name": "rozpis-smeny",
+              },
+              body: JSON.stringify({ schedule: {} }),
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+            binId = data.metadata.id;
+            saveLocal("jsonbin_bin_id", binId);
+            setCloudStatus("ok", "Cloud připojen ✓  (nové úložiště vytvořeno)");
+            return {};
+          }
+          const res = await fetch(`${JSONBIN_BASE}/b/${binId}/latest`, {
+            headers: { "X-Master-Key": key },
+          });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const data = await res.json();
+          setCloudStatus("ok", "Data načtena z cloudu ✓");
+          meetingsCache = data.record.meetings || [];
+          saveLocal("meetings_cache", meetingsCache);
+          usersCache = data.record.users || [];
+          saveLocal("users_cache", usersCache);
+          return data.record.schedule || {};
+        } catch (e) {
+          setCloudStatus(
+            "err",
+            `Chyba připojení: ${e.message} — zobrazuji lokální cache`,
+          );
+          return null;
+        }
+      }
 
-async function cloudLoad() {
-  const key = getApiKey();
-  if (!key) { setCloudStatus('', 'Cloud není nastaven — data se sdílet nebudou'); return null; }
-  setCloudStatus('loading', 'Načítám data z cloudu…');
-  try {
-    let binId = getBinId();
-    if (!binId) {
-      const res = await fetch(`${JSONBIN_BASE}/b`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Master-Key': key, 'X-Bin-Name': 'rozpis-smeny' },
-        body: JSON.stringify({ schedule: {} })
+      async function cloudSaveAll(extraSchedule, extraMeetings) {
+        const key = getApiKey();
+        const binId = getBinId();
+        if (!key || !binId) return;
+        setCloudStatus("loading", "Ukládám do cloudu…");
+        try {
+          const res = await fetch(`${JSONBIN_BASE}/b/${binId}`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Master-Key": key,
+            },
+            body: JSON.stringify({
+              schedule: extraSchedule ?? scheduleCache,
+              meetings: extraMeetings ?? meetingsCache,
+              users: usersCache || [],
+              extra_days: loadLocal("extra_days", []),
+            }),
+          });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          setCloudStatus("ok", "Uloženo do cloudu ✓");
+        } catch (e) {
+          setCloudStatus("err", `Nepodařilo se uložit: ${e.message}`);
+        }
+      }
+
+      async function cloudSave(schedule) {
+        await cloudSaveAll(schedule, null);
+      }
+
+      async function loadSchedule() {
+        const cloud = await cloudLoad();
+        if (cloud !== null) {
+          scheduleCache = cloud;
+          saveLocal("schedule_cache", cloud);
+        } else {
+          scheduleCache = loadLocal("schedule_cache", {});
+          meetingsCache = loadLocal("meetings_cache", []);
+        }
+        renderWeeks();
+      }
+
+      async function saveSchedule(s) {
+        scheduleCache = s;
+        saveLocal("schedule_cache", s);
+        await cloudSave(s);
+      }
+
+      /* ══ API KEY SETUP ══ */
+      function saveApiKey() {
+        const val = document.getElementById("apiKeyInput").value.trim();
+        if (!val) return;
+        saveLocal("jsonbin_key", val);
+        saveLocal("jsonbin_bin_id", "");
+        document.getElementById("setupBox").style.display = "none";
+        loadSchedule();
+      }
+
+      /* ══ FIRST RUN ══ */
+      function showFirstRun() {
+        const p = document.getElementById("firstRunPanel");
+        p.style.display = p.style.display === "none" ? "block" : "none";
+      }
+
+      async function doFirstRun() {
+        const apiKey = document.getElementById("frApiKey").value.trim();
+        const binId = document.getElementById("frBinId").value.trim();
+        const adminU = document.getElementById("frAdminUser").value.trim();
+        const adminP = document.getElementById("frAdminPass").value;
+        const errEl = document.getElementById("frErr");
+
+        if (!apiKey || !adminU || !adminP) {
+          errEl.textContent = "Vyplň API klíč, jméno a heslo.";
+          errEl.style.display = "block";
+          return;
+        }
+
+        saveLocal("jsonbin_key", apiKey);
+        if (binId) saveLocal("jsonbin_bin_id", binId);
+        else saveLocal("jsonbin_bin_id", "");
+
+        // Create bin if needed
+        let resolvedBinId = binId;
+        if (!resolvedBinId) {
+          try {
+            const res = await fetch(`${JSONBIN_BASE}/b`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "X-Master-Key": apiKey,
+                "X-Bin-Name": "rozpis-smeny",
+              },
+              body: JSON.stringify({ schedule: {}, meetings: [], users: [] }),
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+            resolvedBinId = data.metadata.id;
+            saveLocal("jsonbin_bin_id", resolvedBinId);
+          } catch (e) {
+            errEl.textContent = `Chyba: ${e.message} — zkontroluj API klíč.`;
+            errEl.style.display = "block";
+            return;
+          }
+        }
+
+        // Save admin user to cloud
+        const adminUser = { username: adminU, password: adminP, isAdmin: true };
+        try {
+          const res = await fetch(`${JSONBIN_BASE}/b/${resolvedBinId}`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Master-Key": apiKey,
+            },
+            body: JSON.stringify({
+              schedule: {},
+              meetings: [],
+              users: [adminUser],
+            }),
+          });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        } catch (e) {
+          errEl.textContent = `Nepodařilo se uložit: ${e.message}`;
+          errEl.style.display = "block";
+          return;
+        }
+
+        usersCache = [adminUser];
+        saveLocal("users_cache", [adminUser]);
+
+        // Auto-login
+        currentUser = adminUser;
+        document.getElementById("loginPage").style.display = "none";
+        document.getElementById("appPage").style.display = "block";
+        document.getElementById("userBadge").textContent = adminU;
+        document.getElementById("adminSection").style.display = "block";
+        document.getElementById("uploadSection").style.display = "block";
+        document.getElementById("addMeetingBox").style.display = "block";
+        renderUsersList();
+        loadSchedule();
+      }
+
+      /* ══ AUTH ══ */
+      let currentUser = null;
+
+      async function doLogin() {
+        const u = document.getElementById("loginUser").value.trim();
+        const p = document.getElementById("loginPass").value;
+        const btn = document.querySelector(".login-btn");
+        btn.textContent = "Ověřuji…";
+        btn.disabled = true;
+
+        // Load users from cloud first (so passwords are never in the code)
+        await loadUsers();
+
+        const users = getUsers();
+
+        // If no users exist yet in cloud, show setup instructions
+        if (users.length === 0) {
+          document.getElementById("loginErr").textContent =
+            "Žádní uživatelé nenalezeni. Nastav cloud a přidej uživatele.";
+          document.getElementById("loginErr").style.display = "block";
+          btn.textContent = "Přihlásit se →";
+          btn.disabled = false;
+          return;
+        }
+
+        const found = users.find((x) => x.username === u && x.password === p);
+        btn.textContent = "Přihlásit se →";
+        btn.disabled = false;
+
+        if (!found) {
+          document.getElementById("loginErr").textContent =
+            "Nesprávné přihlašovací údaje.";
+          document.getElementById("loginErr").style.display = "block";
+          return;
+        }
+        currentUser = found;
+        document.getElementById("loginPage").style.display = "none";
+        document.getElementById("appPage").style.display = "block";
+        document.getElementById("userBadge").textContent = u;
+        if (found.isAdmin) {
+          document.getElementById("adminSection").style.display = "block";
+          document.getElementById("uploadSection").style.display = "block";
+          document.getElementById("addMeetingBox").style.display = "block";
+          renderUsersList();
+          if (!getApiKey())
+            document.getElementById("setupBox").style.display = "block";
+        }
+        loadSchedule();
+      }
+
+      function doLogout() {
+        currentUser = null;
+        document.getElementById("appPage").style.display = "none";
+        document.getElementById("loginPage").style.display = "flex";
+        document.getElementById("loginUser").value = "";
+        document.getElementById("loginPass").value = "";
+        document.getElementById("loginErr").style.display = "none";
+        document.getElementById("addMeetingBox").style.display = "none";
+        closeDetail();
+      }
+
+      document.getElementById("loginPass").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") doLogin();
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      binId = data.metadata.id;
-      saveLocal('jsonbin_bin_id', binId);
-      setCloudStatus('ok', 'Cloud připojen ✓  (nové úložiště vytvořeno)');
-      return {};
-    }
-    const res = await fetch(`${JSONBIN_BASE}/b/${binId}/latest`, { headers: { 'X-Master-Key': key } });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    setCloudStatus('ok', 'Data načtena z cloudu ✓');
-    meetingsCache = data.record.meetings || [];
-    saveLocal('meetings_cache', meetingsCache);
-    usersCache = data.record.users || [];
-    saveLocal('users_cache', usersCache);
-    return data.record.schedule || {};
-  } catch(e) {
-    setCloudStatus('err', `Chyba připojení: ${e.message} — zobrazuji lokální cache`);
-    return null;
-  }
-}
-
-async function cloudSaveAll(extraSchedule, extraMeetings) {
-  const key = getApiKey(); const binId = getBinId();
-  if (!key || !binId) return;
-  setCloudStatus('loading', 'Ukládám do cloudu…');
-  try {
-    const res = await fetch(`${JSONBIN_BASE}/b/${binId}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'X-Master-Key': key },
-      body: JSON.stringify({
-        schedule: extraSchedule ?? scheduleCache,
-        meetings: extraMeetings ?? meetingsCache,
-        users: usersCache || []
-      })
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    setCloudStatus('ok', 'Uloženo do cloudu ✓');
-  } catch(e) { setCloudStatus('err', `Nepodařilo se uložit: ${e.message}`); }
-}
-
-async function cloudSave(schedule) {
-  await cloudSaveAll(schedule, null);
-}
-
-async function loadSchedule() {
-  const cloud = await cloudLoad();
-  if (cloud !== null) { scheduleCache = cloud; saveLocal('schedule_cache', cloud); }
-  else { scheduleCache = loadLocal('schedule_cache', {}); meetingsCache = loadLocal('meetings_cache', []); }
-  renderWeeks();
-}
-
-async function saveSchedule(s) {
-  scheduleCache = s; saveLocal('schedule_cache', s); await cloudSave(s);
-}
-
-/* ══ API KEY SETUP ══ */
-function saveApiKey() {
-  const val = document.getElementById('apiKeyInput').value.trim();
-  if (!val) return;
-  saveLocal('jsonbin_key', val);
-  saveLocal('jsonbin_bin_id', '');
-  document.getElementById('setupBox').style.display = 'none';
-  loadSchedule();
-}
-
-/* ══ FIRST RUN ══ */
-function showFirstRun() {
-  const p = document.getElementById('firstRunPanel');
-  p.style.display = p.style.display === 'none' ? 'block' : 'none';
-}
-
-async function doFirstRun() {
-  const apiKey  = document.getElementById('frApiKey').value.trim();
-  const binId   = document.getElementById('frBinId').value.trim();
-  const adminU  = document.getElementById('frAdminUser').value.trim();
-  const adminP  = document.getElementById('frAdminPass').value;
-  const errEl   = document.getElementById('frErr');
-
-  if (!apiKey || !adminU || !adminP) { errEl.textContent = 'Vyplň API klíč, jméno a heslo.'; errEl.style.display='block'; return; }
-
-  saveLocal('jsonbin_key', apiKey);
-  if (binId) saveLocal('jsonbin_bin_id', binId);
-  else saveLocal('jsonbin_bin_id', '');
-
-  // Create bin if needed
-  let resolvedBinId = binId;
-  if (!resolvedBinId) {
-    try {
-      const res = await fetch(`${JSONBIN_BASE}/b`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Master-Key': apiKey, 'X-Bin-Name': 'rozpis-smeny' },
-        body: JSON.stringify({ schedule: {}, meetings: [], users: [] })
+      document.getElementById("loginUser").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") doLogin();
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      resolvedBinId = data.metadata.id;
-      saveLocal('jsonbin_bin_id', resolvedBinId);
-    } catch(e) { errEl.textContent = `Chyba: ${e.message} — zkontroluj API klíč.`; errEl.style.display='block'; return; }
-  }
 
-  // Save admin user to cloud
-  const adminUser = { username: adminU, password: adminP, isAdmin: true };
-  try {
-    const res = await fetch(`${JSONBIN_BASE}/b/${resolvedBinId}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'X-Master-Key': apiKey },
-      body: JSON.stringify({ schedule: {}, meetings: [], users: [adminUser] })
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  } catch(e) { errEl.textContent = `Nepodařilo se uložit: ${e.message}`; errEl.style.display='block'; return; }
+      /* ══ WEEKS ══ */
+      let weekOffset = 0;
 
-  usersCache = [adminUser];
-  saveLocal('users_cache', [adminUser]);
+      function getSlots(skip, count) {
+        const slots = [];
+        const d = new Date();
+        d.setHours(0, 0, 0, 0);
+        let found = 0,
+          checked = 0;
+        while (found < skip + count && checked < 600) {
+          const dow = d.getDay();
+          if (dow === 4 || dow === 0) {
+            if (checked >= skip)
+              slots.push({
+                date: new Date(d),
+                type: dow === 4 ? "thu" : "sun",
+                isoDate: toISO(d),
+                time: dow === 4 ? "18:00" : "10:00",
+                label: dow === 4 ? "Čtvrtek" : "Neděle",
+              });
+            found++;
+          }
+          d.setDate(d.getDate() + 1);
+          checked++;
+        }
+        return slots;
+      }
 
-  // Auto-login
-  currentUser = adminUser;
-  document.getElementById('loginPage').style.display = 'none';
-  document.getElementById('appPage').style.display = 'block';
-  document.getElementById('userBadge').textContent = adminU;
-  document.getElementById('adminSection').style.display = 'block';
-  document.getElementById('uploadSection').style.display = 'block';
-  document.getElementById('addMeetingBox').style.display = 'block';
-  renderUsersList();
-  loadSchedule();
-}
+      function getExtraDays() {
+        return loadLocal("extra_days", []);
+      }
+      async function saveExtraDays(days) {
+        saveLocal("extra_days", days);
+        await cloudSaveAll();
+      }
 
-/* ══ AUTH ══ */
-let currentUser = null;
+      async function addCustomDay() {
+        const date = document.getElementById("customDate").value;
+        const time = document.getElementById("customTime").value || "18:00";
+        const label = document.getElementById("customLabel").value.trim();
+        const status = document.getElementById("customDayStatus");
+        if (!date) {
+          status.textContent = "Vyber datum.";
+          status.style.display = "block";
+          status.style.color = "var(--danger)";
+          return;
+        }
+        const extras = getExtraDays();
+        // Avoid exact duplicate
+        if (extras.find((e) => e.isoDate === date && e.time === time)) {
+          status.textContent = "Tento termín už existuje.";
+          status.style.display = "block";
+          status.style.color = "var(--danger)";
+          return;
+        }
+        const d = new Date(date + "T00:00:00");
+        extras.push({
+          isoDate: date,
+          time,
+          label: label || formatDate(d),
+          type: "extra",
+        });
+        await saveExtraDays(extras);
+        document.getElementById("customDate").value = "";
+        document.getElementById("customLabel").value = "";
+        status.textContent = `✓ Termín ${date} přidán.`;
+        status.style.display = "block";
+        status.style.color = "var(--success)";
+        renderWeeks();
+      }
 
-async function doLogin() {
-  const u = document.getElementById('loginUser').value.trim();
-  const p = document.getElementById('loginPass').value;
-  const btn = document.querySelector('.login-btn');
-  btn.textContent = 'Ověřuji…'; btn.disabled = true;
+      async function removeExtraDay(isoDate, time) {
+        if (!confirm("Odebrat tento termín z přehledu?")) return;
+        const extras = getExtraDays().filter(
+          (e) => !(e.isoDate === isoDate && e.time === time),
+        );
+        await saveExtraDays(extras);
+        renderWeeks();
+      }
 
-  // Load users from cloud first (so passwords are never in the code)
-  await loadUsers();
+      function toISO(d) {
+        return (
+          d.getFullYear() +
+          "-" +
+          String(d.getMonth() + 1).padStart(2, "0") +
+          "-" +
+          String(d.getDate()).padStart(2, "0")
+        );
+      }
+      const CZ_DAYS = [
+        "Neděle",
+        "Pondělí",
+        "Úterý",
+        "Středa",
+        "Čtvrtek",
+        "Pátek",
+        "Sobota",
+      ];
+      const CZ_MONTHS = [
+        "ledna",
+        "února",
+        "března",
+        "dubna",
+        "května",
+        "června",
+        "července",
+        "srpna",
+        "září",
+        "října",
+        "listopadu",
+        "prosince",
+      ];
+      function formatDate(d) {
+        return `${CZ_DAYS[d.getDay()]} ${d.getDate()}. ${CZ_MONTHS[d.getMonth()]}`;
+      }
+      function shiftWeeks(n) {
+        weekOffset = Math.max(0, weekOffset + n);
+        renderWeeks();
+      }
 
-  const users = getUsers();
+      function renderWeeks() {
+        // Regular slots (thu/sun)
+        const regular = getSlots(weekOffset * 2, 8);
 
-  // If no users exist yet in cloud, show setup instructions
-  if (users.length === 0) {
-    document.getElementById('loginErr').textContent = 'Žádní uživatelé nenalezeni. Nastav cloud a přidej uživatele.';
-    document.getElementById('loginErr').style.display = 'block';
-    btn.textContent = 'Přihlásit se →'; btn.disabled = false;
-    return;
-  }
+        // Extra days — show always (not paginated), merged with regular
+        const today = toISO(new Date());
+        const extras = getExtraDays()
+          .filter((e) => e.isoDate >= today)
+          .map((e) => ({
+            date: new Date(e.isoDate + "T00:00:00"),
+            type: e.type,
+            isoDate: e.isoDate,
+            time: e.time,
+            label: e.label,
+            isExtra: true,
+          }));
 
-  const found = users.find(x => x.username === u && x.password === p);
-  btn.textContent = 'Přihlásit se →'; btn.disabled = false;
+        // Merge and deduplicate by isoDate+time
+        const allSlots = [...regular];
+        extras.forEach((ex) => {
+          if (
+            !allSlots.find(
+              (s) => s.isoDate === ex.isoDate && s.time === ex.time,
+            )
+          )
+            allSlots.push(ex);
+        });
+        allSlots.sort(
+          (a, b) =>
+            a.isoDate.localeCompare(b.isoDate) || a.time.localeCompare(b.time),
+        );
 
-  if (!found) { document.getElementById('loginErr').textContent = 'Nesprávné přihlašovací údaje.'; document.getElementById('loginErr').style.display = 'block'; return; }
-  currentUser = found;
-  document.getElementById('loginPage').style.display = 'none';
-  document.getElementById('appPage').style.display = 'block';
-  document.getElementById('userBadge').textContent = u;
-  if (found.isAdmin) {
-    document.getElementById('adminSection').style.display = 'block';
-    document.getElementById('uploadSection').style.display = 'block';
-    document.getElementById('addMeetingBox').style.display = 'block';
-    renderUsersList();
-    if (!getApiKey()) document.getElementById('setupBox').style.display = 'block';
-  }
-  loadSchedule();
-}
+        const grid = document.getElementById("weeksGrid");
+        grid.innerHTML = "";
+        const weeks = {};
+        allSlots.forEach((s) => {
+          const d = s.date;
+          const dow = (d.getDay() + 6) % 7;
+          const monday = new Date(d);
+          monday.setDate(d.getDate() - dow);
+          const key = toISO(monday);
+          if (!weeks[key]) {
+            const label = `Týden od ${monday.getDate()}. ${CZ_MONTHS[monday.getMonth()]}`;
+            weeks[key] = { label, slots: [] };
+          }
+          weeks[key].slots.push(s);
+        });
 
-function doLogout() {
-  currentUser = null;
-  document.getElementById('appPage').style.display = 'none';
-  document.getElementById('loginPage').style.display = 'flex';
-  document.getElementById('loginUser').value = '';
-  document.getElementById('loginPass').value = '';
-  document.getElementById('loginErr').style.display = 'none';
-  document.getElementById('addMeetingBox').style.display = 'none';
-  closeDetail();
-}
+        if (Object.keys(weeks).length === 0) {
+          grid.innerHTML =
+            '<div style="color:var(--muted);font-size:.8rem;padding:16px">Žádné termíny k zobrazení.</div>';
+          return;
+        }
 
-document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key==='Enter') doLogin(); });
-document.getElementById('loginUser').addEventListener('keydown', e => { if (e.key==='Enter') doLogin(); });
+        Object.values(weeks).forEach((w) => {
+          const card = document.createElement("div");
+          card.className = "week-card";
+          card.innerHTML = `<div class="week-label">${w.label}</div>`;
+          w.slots.forEach((s) => {
+            const hasData = scheduleCache[s.isoDate]?.length > 0;
+            const isAdmin = currentUser?.isAdmin;
+            const btn = document.createElement("button");
+            btn.className = `day-btn ${s.type}`;
+            btn.innerHTML = `
+        <div class="day-btn-name">${s.label || CZ_DAYS[s.date.getDay()]} — ${s.date.getDate()}. ${CZ_MONTHS[s.date.getMonth()]}</div>
+        <div class="day-btn-time">${s.time} · ${s.isoDate}</div>
+        ${hasData ? '<span class="has-data">● rozpis</span>' : '<span class="dot"></span>'}
+        ${s.isExtra && isAdmin ? `<span style="position:absolute;right:36px;top:50%;transform:translateY(-50%);font-size:.65rem;color:var(--muted);cursor:pointer" onclick="event.stopPropagation();removeExtraDay('${s.isoDate}','${s.time}')">✕</span>` : ""}`;
+            btn.onclick = () => openDetail(s);
+            card.appendChild(btn);
+          });
+          grid.appendChild(card);
+        });
+        closeDetail();
+      }
 
-/* ══ WEEKS ══ */
-let weekOffset = 0;
+      /* ══ DETAIL ══ */
+      function openDetail(slot) {
+        const panel = document.getElementById("detailPanel");
+        document.getElementById("detailTitle").textContent =
+          `${slot.label || CZ_DAYS[slot.date.getDay()]}, ${formatDate(slot.date)}`;
+        const badge = document.getElementById("detailBadge");
+        badge.textContent = slot.time;
+        badge.className = `detail-badge ${slot.type}`;
+        const rows = scheduleCache[slot.isoDate];
+        const content = document.getElementById("detailContent");
+        if (!rows || rows.length === 0) {
+          content.innerHTML = `<div class="no-data">Pro tento den zatím nebyl nahrán žádný rozpis.</div>`;
+        } else {
+          const cols = Object.keys(rows[0]);
+          let html = `<table class="schedule-table"><thead><tr>${cols.map((c) => `<th>${c}</th>`).join("")}</tr></thead><tbody>`;
+          rows.forEach((r) => {
+            html += `<tr>${cols.map((c) => `<td>${r[c] ?? ""}</td>`).join("")}</tr>`;
+          });
+          html += `</tbody></table>`;
+          content.innerHTML = html;
+        }
+        panel.style.display = "block";
+        panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+      function closeDetail() {
+        document.getElementById("detailPanel").style.display = "none";
+      }
 
-function getSlots(skip, count) {
-  const slots = []; const d = new Date(); d.setHours(0,0,0,0);
-  let found=0, checked=0;
-  while (found < skip+count && checked < 600) {
-    const dow = d.getDay();
-    if (dow===4 || dow===0) { if (checked>=skip) slots.push({date:new Date(d), type:dow===4?'thu':'sun', isoDate:toISO(d)}); found++; }
-    d.setDate(d.getDate()+1); checked++;
-  }
-  return slots;
-}
+      /* ══ FILE UPLOAD ══ */
+      const uploadZone = document.getElementById("uploadZone"),
+        fileInput = document.getElementById("fileInput");
+      uploadZone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        uploadZone.classList.add("drag-over");
+      });
+      uploadZone.addEventListener("dragleave", () =>
+        uploadZone.classList.remove("drag-over"),
+      );
+      uploadZone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        uploadZone.classList.remove("drag-over");
+        if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+      });
+      fileInput.addEventListener("change", () => {
+        if (fileInput.files[0]) handleFile(fileInput.files[0]);
+      });
 
-function toISO(d) { return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
-const CZ_DAYS=['Neděle','Pondělí','Úterý','Středa','Čtvrtek','Pátek','Sobota'];
-const CZ_MONTHS=['ledna','února','března','dubna','května','června','července','srpna','září','října','listopadu','prosince'];
-function formatDate(d) { return `${CZ_DAYS[d.getDay()]} ${d.getDate()}. ${CZ_MONTHS[d.getMonth()]}`; }
-function shiftWeeks(n) { weekOffset=Math.max(0,weekOffset+n); renderWeeks(); }
+      function handleFile(file) {
+        const name = file.name.toLowerCase(),
+          status = document.getElementById("uploadStatus");
+        if (name.endsWith(".csv") || name.endsWith(".txt")) {
+          const r = new FileReader();
+          r.onload = async (e) => {
+            try {
+              const p = parseCSV(e.target.result);
+              await mergeAndSave(p, file.name, status);
+            } catch (err) {
+              status.textContent = `Chyba: ${err.message}`;
+              status.className = "upload-status err";
+            }
+          };
+          r.readAsText(file, "UTF-8");
+        } else if (name.endsWith(".xlsx") || name.endsWith(".xls")) {
+          if (typeof XLSX === "undefined") {
+            const s = document.createElement("script");
+            s.src =
+              "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
+            s.onload = () => parseExcel(file, status);
+            document.head.appendChild(s);
+          } else parseExcel(file, status);
+        } else {
+          status.textContent = "Nepodporovaný formát.";
+          status.className = "upload-status err";
+        }
+      }
 
-function renderWeeks() {
-  const slots = getSlots(weekOffset*2, 8);
-  const grid = document.getElementById('weeksGrid');
-  grid.innerHTML = '';
-  const weeks = {};
-  slots.forEach(s => {
-    const d=s.date;
-    // Week starts on Monday
-    const dow=(d.getDay()+6)%7;
-    const monday=new Date(d); monday.setDate(d.getDate()-dow);
-    const key=toISO(monday);
-    if (!weeks[key]) {
-      const label=`Týden od ${monday.getDate()}. ${CZ_MONTHS[monday.getMonth()]}`;
-      weeks[key]={label, slots:[]};
-    }
-    weeks[key].slots.push(s);
-  });
-  Object.values(weeks).forEach(w => {
-    const card=document.createElement('div'); card.className='week-card';
-    card.innerHTML=`<div class="week-label">${w.label}</div>`;
-    w.slots.forEach(s => {
-      const time=s.type==='thu'?'18:00':'10:00', dayName=s.type==='thu'?'Čtvrtek':'Neděle';
-      const hasData=scheduleCache[s.isoDate]?.length>0;
-      const btn=document.createElement('button'); btn.className=`day-btn ${s.type}`;
-      btn.innerHTML=`<div class="day-btn-name">${dayName} — ${formatDate(s.date).split(' ').slice(1).join(' ')}</div>
-        <div class="day-btn-time">${time} · ${s.isoDate}</div>
-        ${hasData?'<span class="has-data">● rozpis</span>':'<span class="dot"></span>'}`;
-      btn.onclick=()=>openDetail(s); card.appendChild(btn);
-    });
-    grid.appendChild(card);
-  });
-  closeDetail();
-}
+      async function mergeAndSave(parsed, fname, status) {
+        await saveSchedule({ ...scheduleCache, ...parsed });
+        status.textContent = `✓ Nahráno ${fname} — ${Object.keys(parsed).length} dní s daty. Ostatní uvidí změny po obnovení stránky.`;
+        status.className = "upload-status ok";
+        renderWeeks();
+      }
 
-/* ══ DETAIL ══ */
-function openDetail(slot) {
-  const panel=document.getElementById('detailPanel');
-  const time=slot.type==='thu'?'18:00':'10:00', dayName=slot.type==='thu'?'Čtvrtek':'Neděle';
-  document.getElementById('detailTitle').textContent=`${dayName}, ${formatDate(slot.date)}`;
-  const badge=document.getElementById('detailBadge');
-  badge.textContent=`${time} — ${slot.type==='thu'?'Čtvrtková směna':'Nedělní směna'}`;
-  badge.className=`detail-badge ${slot.type}`;
-  const rows=scheduleCache[slot.isoDate];
-  const content=document.getElementById('detailContent');
-  if (!rows||rows.length===0) {
-    content.innerHTML=`<div class="no-data">Pro tento den zatím nebyl nahrán žádný rozpis.</div>`;
-  } else {
-    const cols=Object.keys(rows[0]);
-    let html=`<table class="schedule-table"><thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>`;
-    rows.forEach(r=>{ html+=`<tr>${cols.map(c=>`<td>${r[c]??''}</td>`).join('')}</tr>`; });
-    html+=`</tbody></table>`; content.innerHTML=html;
-  }
-  panel.style.display='block'; panel.scrollIntoView({behavior:'smooth',block:'nearest'});
-}
-function closeDetail() { document.getElementById('detailPanel').style.display='none'; }
+      function parseExcel(file, status) {
+        const r = new FileReader();
+        r.onload = async (e) => {
+          try {
+            const wb = XLSX.read(e.target.result, { type: "binary" }),
+              ws = wb.Sheets[wb.SheetNames[0]],
+              json = XLSX.utils.sheet_to_json(ws, { defval: "" });
+            await mergeAndSave(groupByDate(json), file.name, status);
+          } catch (err) {
+            status.textContent = `Chyba Excel: ${err.message}`;
+            status.className = "upload-status err";
+          }
+        };
+        r.readAsBinaryString(file);
+      }
 
-/* ══ FILE UPLOAD ══ */
-const uploadZone=document.getElementById('uploadZone'), fileInput=document.getElementById('fileInput');
-uploadZone.addEventListener('dragover',e=>{e.preventDefault();uploadZone.classList.add('drag-over');});
-uploadZone.addEventListener('dragleave',()=>uploadZone.classList.remove('drag-over'));
-uploadZone.addEventListener('drop',e=>{e.preventDefault();uploadZone.classList.remove('drag-over');if(e.dataTransfer.files[0])handleFile(e.dataTransfer.files[0]);});
-fileInput.addEventListener('change',()=>{if(fileInput.files[0])handleFile(fileInput.files[0]);});
+      function parseCSV(text) {
+        const lines = text.split(/\r?\n/).filter((l) => l.trim());
+        if (lines.length < 2)
+          throw new Error("Soubor neobsahuje dostatek dat.");
+        const headers = splitLine(lines[0]);
+        return groupByDate(
+          lines.slice(1).map((l) => {
+            const v = splitLine(l),
+              o = {};
+            headers.forEach((h, i) => (o[h] = v[i] ?? ""));
+            return o;
+          }),
+        );
+      }
+      function splitLine(line) {
+        const r = [];
+        let c = "",
+          q = false;
+        for (const ch of line) {
+          if (ch === '"') {
+            q = !q;
+          } else if ((ch === "," || ch === ";") && !q) {
+            r.push(c.trim());
+            c = "";
+          } else c += ch;
+        }
+        r.push(c.trim());
+        return r;
+      }
+      function normalizeDate(val) {
+        if (!val) return null;
+        const s = String(val).trim();
+        if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+        const m = s.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+        if (m)
+          return `${m[3]}-${m[2].padStart(2, "0")}-${m[1].padStart(2, "0")}`;
+        if (/^\d+$/.test(s)) {
+          const d = new Date(Math.round((parseInt(s) - 25569) * 86400 * 1000));
+          return toISO(d);
+        }
+        return null;
+      }
+      function groupByDate(rows) {
+        const r = {};
+        rows.forEach((row) => {
+          const k = Object.keys(row),
+            date = normalizeDate(row[k[0]]);
+          if (!date) return;
+          if (!r[date]) r[date] = [];
+          const o = {};
+          k.slice(1).forEach((x) => (o[x] = row[x]));
+          r[date].push(o);
+        });
+        return r;
+      }
 
-function handleFile(file) {
-  const name=file.name.toLowerCase(), status=document.getElementById('uploadStatus');
-  if (name.endsWith('.csv')||name.endsWith('.txt')) {
-    const r=new FileReader(); r.onload=async e=>{
-      try { const p=parseCSV(e.target.result); await mergeAndSave(p,file.name,status); }
-      catch(err){status.textContent=`Chyba: ${err.message}`;status.className='upload-status err';}
-    }; r.readAsText(file,'UTF-8');
-  } else if (name.endsWith('.xlsx')||name.endsWith('.xls')) {
-    if (typeof XLSX==='undefined') { const s=document.createElement('script'); s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'; s.onload=()=>parseExcel(file,status); document.head.appendChild(s); }
-    else parseExcel(file,status);
-  } else { status.textContent='Nepodporovaný formát.'; status.className='upload-status err'; }
-}
+      /* ══ TABS ══ */
+      function switchTab(name) {
+        document
+          .querySelectorAll(".tab-content")
+          .forEach((el) => el.classList.remove("active"));
+        document
+          .querySelectorAll(".tab-btn")
+          .forEach((el) => el.classList.remove("active"));
+        document.getElementById("tab-" + name).classList.add("active");
+        document
+          .querySelector(`.tab-btn[onclick="switchTab('${name}')"]`)
+          .classList.add("active");
+        if (name === "schuzky") renderMeetings();
+      }
 
-async function mergeAndSave(parsed, fname, status) {
-  await saveSchedule({...scheduleCache,...parsed});
-  status.textContent=`✓ Nahráno ${fname} — ${Object.keys(parsed).length} dní s daty. Ostatní uvidí změny po obnovení stránky.`;
-  status.className='upload-status ok'; renderWeeks();
-}
+      /* ══ MEETINGS DATA ══ */
+      let meetingsCache = [];
 
-function parseExcel(file,status) {
-  const r=new FileReader(); r.onload=async e=>{
-    try { const wb=XLSX.read(e.target.result,{type:'binary'}),ws=wb.Sheets[wb.SheetNames[0]],json=XLSX.utils.sheet_to_json(ws,{defval:''}); await mergeAndSave(groupByDate(json),file.name,status); }
-    catch(err){status.textContent=`Chyba Excel: ${err.message}`;status.className='upload-status err';}
-  }; r.readAsBinaryString(file);
-}
+      async function loadMeetings() {
+        const cloud = await cloudLoadMeetings();
+        if (cloud !== null) {
+          meetingsCache = cloud;
+          saveLocal("meetings_cache", cloud);
+        } else {
+          meetingsCache = loadLocal("meetings_cache", []);
+        }
+      }
 
-function parseCSV(text) {
-  const lines=text.split(/\r?\n/).filter(l=>l.trim()); if(lines.length<2)throw new Error('Soubor neobsahuje dostatek dat.');
-  const headers=splitLine(lines[0]); return groupByDate(lines.slice(1).map(l=>{const v=splitLine(l),o={};headers.forEach((h,i)=>o[h]=v[i]??'');return o;}));
-}
-function splitLine(line) { const r=[];let c='',q=false; for(const ch of line){if(ch==='"'){q=!q;}else if((ch===','||ch===';')&&!q){r.push(c.trim());c='';}else c+=ch;} r.push(c.trim());return r; }
-function normalizeDate(val) {
-  if(!val)return null; const s=String(val).trim();
-  if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;
-  const m=s.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/); if(m)return `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
-  if(/^\d+$/.test(s)){const d=new Date(Math.round((parseInt(s)-25569)*86400*1000));return toISO(d);}
-  return null;
-}
-function groupByDate(rows) {
-  const r={};
-  rows.forEach(row=>{const k=Object.keys(row),date=normalizeDate(row[k[0]]);if(!date)return;if(!r[date])r[date]=[];const o={};k.slice(1).forEach(x=>o[x]=row[x]);r[date].push(o);});
-  return r;
-}
+      async function cloudLoadMeetings() {
+        const key = getApiKey();
+        const binId = getBinId();
+        if (!key || !binId) return null;
+        try {
+          const res = await fetch(`${JSONBIN_BASE}/b/${binId}/latest`, {
+            headers: { "X-Master-Key": key },
+          });
+          if (!res.ok) return null;
+          const data = await res.json();
+          return data.record.meetings || [];
+        } catch {
+          return null;
+        }
+      }
 
+      async function saveMeetings(m) {
+        meetingsCache = m;
+        saveLocal("meetings_cache", m);
+        // Save both schedule and meetings together in the bin
+        const key = getApiKey();
+        const binId = getBinId();
+        if (!key || !binId) return;
+        setCloudStatus("loading", "Ukládám schůzky do cloudu…");
+        try {
+          const res = await fetch(`${JSONBIN_BASE}/b/${binId}`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Master-Key": key,
+            },
+            body: JSON.stringify({ schedule: scheduleCache, meetings: m }),
+          });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          setCloudStatus("ok", "Uloženo do cloudu ✓");
+        } catch (e) {
+          setCloudStatus("err", `Nepodařilo se uložit: ${e.message}`);
+        }
+      }
 
-/* ══ TABS ══ */
-function switchTab(name) {
-  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-  document.getElementById('tab-' + name).classList.add('active');
-  document.querySelector(`.tab-btn[onclick="switchTab('${name}')"]`).classList.add('active');
-  if (name === 'schuzky') renderMeetings();
-}
+      /* ══ MEETINGS UI ══ */
+      function renderMeetings() {
+        const list = document.getElementById("meetingsList");
+        const showPast = document.getElementById("showPast").checked;
+        const today = toISO(new Date());
 
-/* ══ MEETINGS DATA ══ */
-let meetingsCache = [];
+        let meetings = [...meetingsCache].sort((a, b) =>
+          a.date.localeCompare(b.date),
+        );
+        if (!showPast) meetings = meetings.filter((m) => m.date >= today);
 
-async function loadMeetings() {
-  const cloud = await cloudLoadMeetings();
-  if (cloud !== null) { meetingsCache = cloud; saveLocal('meetings_cache', cloud); }
-  else { meetingsCache = loadLocal('meetings_cache', []); }
-}
+        // Show delete buttons for admin
+        const isAdmin = currentUser?.isAdmin;
 
-async function cloudLoadMeetings() {
-  const key = getApiKey(); const binId = getBinId();
-  if (!key || !binId) return null;
-  try {
-    const res = await fetch(`${JSONBIN_BASE}/b/${binId}/latest`, { headers: { 'X-Master-Key': key } });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data.record.meetings || [];
-  } catch { return null; }
-}
+        if (meetings.length === 0) {
+          list.innerHTML = `<div class="no-meetings">${showPast ? "Žádné schůzky." : "Žádné nadcházející schůzky."}</div>`;
+          return;
+        }
 
-async function saveMeetings(m) {
-  meetingsCache = m; saveLocal('meetings_cache', m);
-  // Save both schedule and meetings together in the bin
-  const key = getApiKey(); const binId = getBinId();
-  if (!key || !binId) return;
-  setCloudStatus('loading', 'Ukládám schůzky do cloudu…');
-  try {
-    const res = await fetch(`${JSONBIN_BASE}/b/${binId}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'X-Master-Key': key },
-      body: JSON.stringify({ schedule: scheduleCache, meetings: m })
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    setCloudStatus('ok', 'Uloženo do cloudu ✓');
-  } catch(e) { setCloudStatus('err', `Nepodařilo se uložit: ${e.message}`); }
-}
-
-/* ══ MEETINGS UI ══ */
-function renderMeetings() {
-  const list = document.getElementById('meetingsList');
-  const showPast = document.getElementById('showPast').checked;
-  const today = toISO(new Date());
-
-  let meetings = [...meetingsCache].sort((a,b) => a.date.localeCompare(b.date));
-  if (!showPast) meetings = meetings.filter(m => m.date >= today);
-
-  // Show delete buttons for admin
-  const isAdmin = currentUser?.isAdmin;
-
-  if (meetings.length === 0) {
-    list.innerHTML = `<div class="no-meetings">${showPast ? 'Žádné schůzky.' : 'Žádné nadcházející schůzky.'}</div>`;
-    return;
-  }
-
-  list.innerHTML = '';
-  meetings.forEach((m, idx) => {
-    const realIdx = meetingsCache.indexOf(m);
-    const d = new Date(m.date + 'T00:00:00');
-    const card = document.createElement('div');
-    card.className = 'meeting-card' + (m.date < today ? ' past' : '');
-    if (m.date < today) card.style.opacity = '0.55';
-    card.innerHTML = `
+        list.innerHTML = "";
+        meetings.forEach((m, idx) => {
+          const realIdx = meetingsCache.indexOf(m);
+          const d = new Date(m.date + "T00:00:00");
+          const card = document.createElement("div");
+          card.className = "meeting-card" + (m.date < today ? " past" : "");
+          if (m.date < today) card.style.opacity = "0.55";
+          card.innerHTML = `
       <div class="meeting-date-box">
         <div class="meeting-date-day">${d.getDate()}</div>
-        <div class="meeting-date-mon">${CZ_MONTHS[d.getMonth()].slice(0,3)}</div>
+        <div class="meeting-date-mon">${CZ_MONTHS[d.getMonth()].slice(0, 3)}</div>
       </div>
       <div class="meeting-info">
         <div class="meeting-title">${m.title}</div>
         <div class="meeting-meta">
-          ${m.time ? `<span>🕐 ${m.time}</span>` : ''}
-          ${m.place ? `<span>📍 ${m.place}</span>` : ''}
+          ${m.time ? `<span>🕐 ${m.time}</span>` : ""}
+          ${m.place ? `<span>📍 ${m.place}</span>` : ""}
           <span>${CZ_DAYS[d.getDay()]}</span>
         </div>
-        ${m.desc ? `<div class="meeting-desc">${m.desc}</div>` : ''}
+        ${m.desc ? `<div class="meeting-desc">${m.desc}</div>` : ""}
       </div>
-      ${isAdmin ? `<button class="meeting-del" onclick="deleteMeeting(${realIdx}, event)" title="Smazat">✕</button>` : ''}
+      ${isAdmin ? `<button class="meeting-del" onclick="deleteMeeting(${realIdx}, event)" title="Smazat">✕</button>` : ""}
     `;
-    if (m.desc) {
-      card.style.cursor = 'pointer';
-      card.addEventListener('click', () => card.classList.toggle('expanded'));
-    }
-    if (isAdmin) {
-      card.addEventListener('mouseenter', () => { const btn=card.querySelector('.meeting-del'); if(btn) btn.style.display='block'; });
-      card.addEventListener('mouseleave', () => { const btn=card.querySelector('.meeting-del'); if(btn) btn.style.display='none'; });
-    }
-    list.appendChild(card);
-  });
-}
+          if (m.desc) {
+            card.style.cursor = "pointer";
+            card.addEventListener("click", () =>
+              card.classList.toggle("expanded"),
+            );
+          }
+          if (isAdmin) {
+            card.addEventListener("mouseenter", () => {
+              const btn = card.querySelector(".meeting-del");
+              if (btn) btn.style.display = "block";
+            });
+            card.addEventListener("mouseleave", () => {
+              const btn = card.querySelector(".meeting-del");
+              if (btn) btn.style.display = "none";
+            });
+          }
+          list.appendChild(card);
+        });
+      }
 
-async function addMeeting() {
-  const title = document.getElementById('mTitle').value.trim();
-  const date  = document.getElementById('mDate').value;
-  if (!title || !date) { alert('Vyplň alespoň název a datum.'); return; }
-  const m = {
-    id: Date.now(),
-    title,
-    date,
-    time:  document.getElementById('mTime').value || '',
-    place: document.getElementById('mPlace').value.trim(),
-    desc:  document.getElementById('mDesc').value.trim()
-  };
-  const updated = [...meetingsCache, m];
-  await saveMeetings(updated);
-  document.getElementById('mTitle').value = '';
-  document.getElementById('mDate').value = '';
-  document.getElementById('mTime').value = '';
-  document.getElementById('mPlace').value = '';
-  document.getElementById('mDesc').value = '';
-  renderMeetings();
-}
+      async function addMeeting() {
+        const title = document.getElementById("mTitle").value.trim();
+        const date = document.getElementById("mDate").value;
+        if (!title || !date) {
+          alert("Vyplň alespoň název a datum.");
+          return;
+        }
+        const m = {
+          id: Date.now(),
+          title,
+          date,
+          time: document.getElementById("mTime").value || "",
+          place: document.getElementById("mPlace").value.trim(),
+          desc: document.getElementById("mDesc").value.trim(),
+        };
+        const updated = [...meetingsCache, m];
+        await saveMeetings(updated);
+        document.getElementById("mTitle").value = "";
+        document.getElementById("mDate").value = "";
+        document.getElementById("mTime").value = "";
+        document.getElementById("mPlace").value = "";
+        document.getElementById("mDesc").value = "";
+        renderMeetings();
+      }
 
-async function deleteMeeting(idx, e) {
-  e.stopPropagation();
-  if (!confirm('Smazat tuto schůzku?')) return;
-  const updated = meetingsCache.filter((_,i) => i !== idx);
-  await saveMeetings(updated);
-  renderMeetings();
-}
+      async function deleteMeeting(idx, e) {
+        e.stopPropagation();
+        if (!confirm("Smazat tuto schůzku?")) return;
+        const updated = meetingsCache.filter((_, i) => i !== idx);
+        await saveMeetings(updated);
+        renderMeetings();
+      }
 
-/* ══ MEETING FILE UPLOAD ══ */
-const meetingUploadZone = document.getElementById('meetingUploadZone');
-const meetingFileInput  = document.getElementById('meetingFileInput');
+      /* ══ MEETING FILE UPLOAD ══ */
+      const meetingUploadZone = document.getElementById("meetingUploadZone");
+      const meetingFileInput = document.getElementById("meetingFileInput");
 
-meetingUploadZone.addEventListener('dragover', e => { e.preventDefault(); meetingUploadZone.classList.add('drag-over'); });
-meetingUploadZone.addEventListener('dragleave', () => meetingUploadZone.classList.remove('drag-over'));
-meetingUploadZone.addEventListener('drop', e => { e.preventDefault(); meetingUploadZone.classList.remove('drag-over'); if(e.dataTransfer.files[0]) handleMeetingFile(e.dataTransfer.files[0]); });
-meetingFileInput.addEventListener('change', () => { if(meetingFileInput.files[0]) handleMeetingFile(meetingFileInput.files[0]); });
+      meetingUploadZone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        meetingUploadZone.classList.add("drag-over");
+      });
+      meetingUploadZone.addEventListener("dragleave", () =>
+        meetingUploadZone.classList.remove("drag-over"),
+      );
+      meetingUploadZone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        meetingUploadZone.classList.remove("drag-over");
+        if (e.dataTransfer.files[0]) handleMeetingFile(e.dataTransfer.files[0]);
+      });
+      meetingFileInput.addEventListener("change", () => {
+        if (meetingFileInput.files[0])
+          handleMeetingFile(meetingFileInput.files[0]);
+      });
 
-function handleMeetingFile(file) {
-  const name = file.name.toLowerCase();
-  const status = document.getElementById('meetingUploadStatus');
-  if (name.endsWith('.csv') || name.endsWith('.txt')) {
-    const r = new FileReader(); r.onload = async e => {
-      try { const rows = parseMeetingCSV(e.target.result); await mergeMeetings(rows, file.name, status); }
-      catch(err) { status.textContent = `Chyba: ${err.message}`; status.className = 'upload-status err'; }
-    }; r.readAsText(file, 'UTF-8');
-  } else if (name.endsWith('.xlsx') || name.endsWith('.xls')) {
-    if (typeof XLSX === 'undefined') { const s=document.createElement('script'); s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'; s.onload=()=>parseMeetingExcel(file,status); document.head.appendChild(s); }
-    else parseMeetingExcel(file, status);
-  } else { status.textContent='Nepodporovaný formát.'; status.className='upload-status err'; }
-}
+      function handleMeetingFile(file) {
+        const name = file.name.toLowerCase();
+        const status = document.getElementById("meetingUploadStatus");
+        if (name.endsWith(".csv") || name.endsWith(".txt")) {
+          const r = new FileReader();
+          r.onload = async (e) => {
+            try {
+              const rows = parseMeetingCSV(e.target.result);
+              await mergeMeetings(rows, file.name, status);
+            } catch (err) {
+              status.textContent = `Chyba: ${err.message}`;
+              status.className = "upload-status err";
+            }
+          };
+          r.readAsText(file, "UTF-8");
+        } else if (name.endsWith(".xlsx") || name.endsWith(".xls")) {
+          if (typeof XLSX === "undefined") {
+            const s = document.createElement("script");
+            s.src =
+              "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
+            s.onload = () => parseMeetingExcel(file, status);
+            document.head.appendChild(s);
+          } else parseMeetingExcel(file, status);
+        } else {
+          status.textContent = "Nepodporovaný formát.";
+          status.className = "upload-status err";
+        }
+      }
 
-function parseMeetingCSV(text) {
-  const lines = text.split(/\r?\n/).filter(l=>l.trim());
-  if (lines.length < 2) throw new Error('Soubor neobsahuje dostatek dat.');
-  const headers = splitLine(lines[0]);
-  return lines.slice(1).map(l => {
-    const v = splitLine(l);
-    const obj = {}; headers.forEach((h,i) => obj[h.trim()] = v[i]??'');
-    // Map common column names
-    const date = normalizeDate(obj['Datum'] || obj['datum'] || obj[headers[0]]);
-    return { id: Date.now()+Math.random(), date: date||'', title: obj['Název']||obj['název']||obj['name']||obj[headers[1]]||'', time: obj['Čas']||obj['čas']||obj['time']||'', place: obj['Místo']||obj['místo']||obj['place']||'', desc: obj['Popis']||obj['popis']||obj['desc']||'' };
-  }).filter(m => m.date && m.title);
-}
+      function parseMeetingCSV(text) {
+        const lines = text.split(/\r?\n/).filter((l) => l.trim());
+        if (lines.length < 2)
+          throw new Error("Soubor neobsahuje dostatek dat.");
+        const headers = splitLine(lines[0]);
+        return lines
+          .slice(1)
+          .map((l) => {
+            const v = splitLine(l);
+            const obj = {};
+            headers.forEach((h, i) => (obj[h.trim()] = v[i] ?? ""));
+            // Map common column names
+            const date = normalizeDate(
+              obj["Datum"] || obj["datum"] || obj[headers[0]],
+            );
+            return {
+              id: Date.now() + Math.random(),
+              date: date || "",
+              title:
+                obj["Název"] ||
+                obj["název"] ||
+                obj["name"] ||
+                obj[headers[1]] ||
+                "",
+              time: obj["Čas"] || obj["čas"] || obj["time"] || "",
+              place: obj["Místo"] || obj["místo"] || obj["place"] || "",
+              desc: obj["Popis"] || obj["popis"] || obj["desc"] || "",
+            };
+          })
+          .filter((m) => m.date && m.title);
+      }
 
-function parseMeetingExcel(file, status) {
-  const r = new FileReader(); r.onload = async e => {
-    try { const wb=XLSX.read(e.target.result,{type:'binary'}),ws=wb.Sheets[wb.SheetNames[0]],json=XLSX.utils.sheet_to_json(ws,{defval:''}); await mergeMeetings(parseMeetingRows(json),file.name,status); }
-    catch(err){status.textContent=`Chyba Excel: ${err.message}`;status.className='upload-status err';}
-  }; r.readAsBinaryString(file);
-}
+      function parseMeetingExcel(file, status) {
+        const r = new FileReader();
+        r.onload = async (e) => {
+          try {
+            const wb = XLSX.read(e.target.result, { type: "binary" }),
+              ws = wb.Sheets[wb.SheetNames[0]],
+              json = XLSX.utils.sheet_to_json(ws, { defval: "" });
+            await mergeMeetings(parseMeetingRows(json), file.name, status);
+          } catch (err) {
+            status.textContent = `Chyba Excel: ${err.message}`;
+            status.className = "upload-status err";
+          }
+        };
+        r.readAsBinaryString(file);
+      }
 
-function parseMeetingRows(rows) {
-  return rows.map(row => {
-    const k = Object.keys(row);
-    const date = normalizeDate(row['Datum']||row['datum']||row[k[0]]);
-    return { id:Date.now()+Math.random(), date:date||'', title:row['Název']||row['název']||row[k[1]]||'', time:row['Čas']||row['čas']||'', place:row['Místo']||row['místo']||'', desc:row['Popis']||row['popis']||'' };
-  }).filter(m=>m.date&&m.title);
-}
+      function parseMeetingRows(rows) {
+        return rows
+          .map((row) => {
+            const k = Object.keys(row);
+            const date = normalizeDate(
+              row["Datum"] || row["datum"] || row[k[0]],
+            );
+            return {
+              id: Date.now() + Math.random(),
+              date: date || "",
+              title: row["Název"] || row["název"] || row[k[1]] || "",
+              time: row["Čas"] || row["čas"] || "",
+              place: row["Místo"] || row["místo"] || "",
+              desc: row["Popis"] || row["popis"] || "",
+            };
+          })
+          .filter((m) => m.date && m.title);
+      }
 
-async function mergeMeetings(newRows, fname, status) {
-  const existing = meetingsCache.filter(m => !newRows.find(n=>n.date===m.date&&n.title===m.title));
-  const updated = [...existing, ...newRows];
-  await saveMeetings(updated);
-  status.textContent = `✓ Nahráno ${fname} — ${newRows.length} schůzek.`;
-  status.className = 'upload-status ok';
-  renderMeetings();
-}
+      async function mergeMeetings(newRows, fname, status) {
+        const existing = meetingsCache.filter(
+          (m) => !newRows.find((n) => n.date === m.date && n.title === m.title),
+        );
+        const updated = [...existing, ...newRows];
+        await saveMeetings(updated);
+        status.textContent = `✓ Nahráno ${fname} — ${newRows.length} schůzek.`;
+        status.className = "upload-status ok";
+        renderMeetings();
+      }
 
-function renderUsersList() {
-  const users = getUsers(), list = document.getElementById('usersList');
-  list.innerHTML = '';
-  if (users.length === 0) {
-    list.innerHTML = '<div style="font-size:.75rem;color:var(--muted);padding:10px">Žádní uživatelé. Přidej prvního admina níže.</div>';
-    return;
-  }
-  users.forEach((u, i) => {
-    const row = document.createElement('div'); row.className = 'user-row';
-    row.innerHTML = `
-      <span>${u.username} ${u.isAdmin ? '<small style="color:var(--accent)">admin</small>' : ''}</span>
+      function renderUsersList() {
+        const users = getUsers(),
+          list = document.getElementById("usersList");
+        list.innerHTML = "";
+        if (users.length === 0) {
+          list.innerHTML =
+            '<div style="font-size:.75rem;color:var(--muted);padding:10px">Žádní uživatelé. Přidej prvního admina níže.</div>';
+          return;
+        }
+        users.forEach((u, i) => {
+          const row = document.createElement("div");
+          row.className = "user-row";
+          row.innerHTML = `
+      <span>${u.username} ${u.isAdmin ? '<small style="color:var(--accent)">admin</small>' : ""}</span>
       <div style="display:flex;gap:8px;align-items:center">
         <button class="del-btn" onclick="changePassword(${i})" style="color:var(--muted)">Změnit heslo</button>
-        ${u.username !== 'admin' ? `<button class="del-btn" onclick="removeUser(${i})">Smazat</button>` : ''}
+        ${u.username !== "admin" ? `<button class="del-btn" onclick="removeUser(${i})">Smazat</button>` : ""}
       </div>`;
-    list.appendChild(row);
-  });
-}
+          list.appendChild(row);
+        });
+      }
 
-async function addUser() {
-  const un = document.getElementById('newUser').value.trim(), pw = document.getElementById('newPass').value;
-  const isAdmin = document.getElementById('newIsAdmin').checked;
-  if (!un || !pw) return;
-  const users = getUsers();
-  if (users.find(u => u.username === un)) { alert('Uživatel již existuje.'); return; }
-  users.push({ username: un, password: pw, isAdmin });
-  await saveUsers(users);
-  document.getElementById('newUser').value = '';
-  document.getElementById('newPass').value = '';
-  document.getElementById('newIsAdmin').checked = false;
-  renderUsersList();
-}
+      async function addUser() {
+        const un = document.getElementById("newUser").value.trim(),
+          pw = document.getElementById("newPass").value;
+        const isAdmin = document.getElementById("newIsAdmin").checked;
+        if (!un || !pw) return;
+        const users = getUsers();
+        if (users.find((u) => u.username === un)) {
+          alert("Uživatel již existuje.");
+          return;
+        }
+        users.push({ username: un, password: pw, isAdmin });
+        await saveUsers(users);
+        document.getElementById("newUser").value = "";
+        document.getElementById("newPass").value = "";
+        document.getElementById("newIsAdmin").checked = false;
+        renderUsersList();
+      }
 
-async function removeUser(idx) {
-  const u = getUsers(); if (u[idx].username === 'admin') return;
-  if (!confirm(`Smazat uživatele "${u[idx].username}"?`)) return;
-  u.splice(idx, 1); await saveUsers(u); renderUsersList();
-}
+      async function removeUser(idx) {
+        const u = getUsers();
+        if (u[idx].username === "admin") return;
+        if (!confirm(`Smazat uživatele "${u[idx].username}"?`)) return;
+        u.splice(idx, 1);
+        await saveUsers(u);
+        renderUsersList();
+      }
 
-async function changePassword(idx) {
-  const users = getUsers();
-  const newPw = prompt(`Nové heslo pro "${users[idx].username}":`);
-  if (!newPw || !newPw.trim()) return;
-  users[idx].password = newPw.trim();
-  await saveUsers(users);
-  alert('Heslo změněno ✓');
-}
-</script>
-</body>
+      async function changePassword(idx) {
+        const users = getUsers();
+        const newPw = prompt(`Nové heslo pro "${users[idx].username}":`);
+        if (!newPw || !newPw.trim()) return;
+        users[idx].password = newPw.trim();
+        await saveUsers(users);
+        alert("Heslo změněno ✓");
+      }
+    </script>
+  </body>
 </html>
