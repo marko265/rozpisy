@@ -1818,14 +1818,24 @@
         await cloudSaveAll();
       }
 
-      async function saveDisplaySettings() {
-        const showThu = document.getElementById("toggleThu").checked;
-        const showSun = document.getElementById("toggleSun").checked;
-        const s = loadLocal("app_settings", {});
-        s.showThu = showThu;
-        s.showSun = showSun;
-        saveLocal("app_settings", s);
+      function getHiddenDays() {
+        return loadLocal("hidden_days", []);
+      }
+      async function saveHiddenDays(days) {
+        saveLocal("hidden_days", days);
         await cloudSaveAll();
+      }
+
+      async function hideDay(isoDate) {
+        const hidden = getHiddenDays();
+        if (!hidden.includes(isoDate)) hidden.push(isoDate);
+        await saveHiddenDays(hidden);
+        renderWeeks();
+      }
+
+      async function unhideDay(isoDate) {
+        const hidden = getHiddenDays().filter((d) => d !== isoDate);
+        await saveHiddenDays(hidden);
         renderWeeks();
       }
 
@@ -1914,15 +1924,11 @@
       }
 
       function renderWeeks() {
-        const s = loadLocal("app_settings", {});
-        const showThu = s.showThu !== false;
-        const showSun = s.showSun !== false;
+        const hidden = getHiddenDays();
 
-        // Regular slots filtered by settings
+        // Regular slots — filter out individually hidden days
         let regular = getSlots(weekOffset * 2, 8);
-        regular = regular.filter(
-          (s) => (s.type === "thu" && showThu) || (s.type === "sun" && showSun),
-        );
+        regular = regular.filter((s) => !hidden.includes(s.isoDate));
 
         // Extra days — show always (not paginated), merged with regular
         const today = toISO(new Date());
@@ -1987,7 +1993,8 @@
         <div class="day-btn-name">${s.label || CZ_DAYS[s.date.getDay()]} — ${s.date.getDate()}. ${CZ_MONTHS[s.date.getMonth()]}</div>
         <div class="day-btn-time">${s.time} · ${s.isoDate}</div>
         ${hasData ? '<span class="has-data">● rozpis</span>' : '<span class="dot"></span>'}
-        ${s.isExtra && isAdmin ? `<span style="position:absolute;right:36px;top:50%;transform:translateY(-50%);font-size:.65rem;color:var(--muted);cursor:pointer" onclick="event.stopPropagation();removeExtraDay('${s.isoDate}','${s.time}')">✕</span>` : ""}`;
+        ${isAdmin && !s.isExtra ? `<span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:.7rem;color:var(--muted);cursor:pointer;padding:4px 6px;border-radius:4px;transition:color .15s" onmouseenter="this.style.color='var(--danger)'" onmouseleave="this.style.color='var(--muted)'" onclick="event.stopPropagation();hideDay('${s.isoDate}')" title="Skrýt tento den">✕</span>` : ""}
+        ${s.isExtra && isAdmin ? `<span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:.7rem;color:var(--muted);cursor:pointer;padding:4px 6px;border-radius:4px;transition:color .15s" onmouseenter="this.style.color='var(--danger)'" onmouseleave="this.style.color='var(--muted)'" onclick="event.stopPropagation();removeExtraDay('${s.isoDate}','${s.time}')" title="Odebrat termín">✕</span>` : ""}`;
             btn.onclick = () => openDetail(s);
             card.appendChild(btn);
           });
