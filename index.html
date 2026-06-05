@@ -8,14 +8,14 @@
       @import url("https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap");
 
       :root {
-        --bg: #1c0770;
-        --surface: #1c0770;
-        --card: #21199b;
+        --bg: #0e0f11;
+        --surface: #16181c;
+        --card: #1c1f25;
         --border: #2a2d35;
-        --accent: #f1ff5e;
-        --accent2: #3a9aff;
-        --text: #fffafa;
-        --muted: #dcdcdc;
+        --accent: #e8b84b;
+        --accent2: #5b8fff;
+        --text: #e8e9ec;
+        --muted: #6b6f7a;
         --danger: #ff5f5f;
         --success: #4ecf7e;
       }
@@ -1130,6 +1130,72 @@
           <div id="uploadSection" style="display: none">
             <div class="section-label">Nahrát rozpis</div>
 
+            <!-- Show/hide regular days -->
+            <div class="add-meeting-box" style="margin-bottom: 16px">
+              <div class="section-label">Zobrazení pravidelných termínů</div>
+              <div
+                style="
+                  display: flex;
+                  gap: 24px;
+                  flex-wrap: wrap;
+                  margin-top: 4px;
+                "
+              >
+                <label
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    font-size: 0.8rem;
+                    color: var(--text);
+                    cursor: pointer;
+                  "
+                >
+                  <input
+                    type="checkbox"
+                    id="toggleThu"
+                    checked
+                    onchange="saveDisplaySettings()"
+                    style="
+                      accent-color: var(--accent);
+                      width: 15px;
+                      height: 15px;
+                    "
+                  />
+                  <span>🟡 Čtvrtek 18:00</span>
+                </label>
+                <label
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    font-size: 0.8rem;
+                    color: var(--text);
+                    cursor: pointer;
+                  "
+                >
+                  <input
+                    type="checkbox"
+                    id="toggleSun"
+                    checked
+                    onchange="saveDisplaySettings()"
+                    style="
+                      accent-color: var(--accent2);
+                      width: 15px;
+                      height: 15px;
+                    "
+                  />
+                  <span>🔵 Neděle 10:00</span>
+                </label>
+              </div>
+              <div
+                style="font-size: 0.68rem; color: var(--muted); margin-top: 8px"
+              >
+                Odškrtnutím skryješ pravidelný den ze všech zařízení — extra
+                termíny zůstanou viditelné.
+              </div>
+            </div>
+
             <!-- Custom day selector -->
             <div class="add-meeting-box" style="margin-bottom: 16px">
               <div class="section-label">Přidat vlastní termín</div>
@@ -1485,6 +1551,10 @@
           saveLocal("meetings_cache", meetingsCache);
           usersCache = data.record.users || [];
           saveLocal("users_cache", usersCache);
+          const extraDays = data.record.extra_days || [];
+          saveLocal("extra_days", extraDays);
+          const settings = data.record.settings || {};
+          saveLocal("app_settings", settings);
           return data.record.schedule || {};
         } catch (e) {
           setCloudStatus(
@@ -1512,6 +1582,7 @@
               meetings: extraMeetings ?? meetingsCache,
               users: usersCache || [],
               extra_days: loadLocal("extra_days", []),
+              settings: loadLocal("app_settings", {}),
             }),
           });
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -1534,6 +1605,12 @@
           scheduleCache = loadLocal("schedule_cache", {});
           meetingsCache = loadLocal("meetings_cache", []);
         }
+        // Apply saved settings to toggles
+        const s = loadLocal("app_settings", {});
+        const thuEl = document.getElementById("toggleThu");
+        const sunEl = document.getElementById("toggleSun");
+        if (thuEl) thuEl.checked = s.showThu !== false;
+        if (sunEl) sunEl.checked = s.showSun !== false;
         renderWeeks();
       }
 
@@ -1741,6 +1818,17 @@
         await cloudSaveAll();
       }
 
+      async function saveDisplaySettings() {
+        const showThu = document.getElementById("toggleThu").checked;
+        const showSun = document.getElementById("toggleSun").checked;
+        const s = loadLocal("app_settings", {});
+        s.showThu = showThu;
+        s.showSun = showSun;
+        saveLocal("app_settings", s);
+        await cloudSaveAll();
+        renderWeeks();
+      }
+
       async function addCustomDay() {
         const date = document.getElementById("customDate").value;
         const time = document.getElementById("customTime").value || "18:00";
@@ -1826,8 +1914,15 @@
       }
 
       function renderWeeks() {
-        // Regular slots (thu/sun)
-        const regular = getSlots(weekOffset * 2, 8);
+        const s = loadLocal("app_settings", {});
+        const showThu = s.showThu !== false;
+        const showSun = s.showSun !== false;
+
+        // Regular slots filtered by settings
+        let regular = getSlots(weekOffset * 2, 8);
+        regular = regular.filter(
+          (s) => (s.type === "thu" && showThu) || (s.type === "sun" && showSun),
+        );
 
         // Extra days — show always (not paginated), merged with regular
         const today = toISO(new Date());
